@@ -57,11 +57,12 @@
   </a>
 
   <script src="/js/identity-display.js"></script>
+  <script src="/js/databaseManager.js"></script>
   <script src="/js/journal-store.js"></script>
   <script>
-    let currentUserKey = 'anonymous';
+    let currentUserKey = null;
 
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       const identityDisplay = window.IdentityDisplayName || {};
       if (window.netlifyIdentity) {
         const apiUrl = `${window.location.origin}/.netlify/identity`;
@@ -69,7 +70,7 @@
 
         let didResolveInit = false;
 
-        const syncFromUser = (user) => {
+        const syncFromUser = async (user) => {
           if (!user) {
             if (didResolveInit) {
               window.location.assign('/assets/login.html');
@@ -82,14 +83,14 @@
             : '';
 
           if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
-            currentUserKey = window.JournalStore.resolveUserKey(user);
-            renderHistory();
+            currentUserKey = await window.JournalStore.resolveUserKey(user);
+            await renderHistory();
           }
         };
 
         const currentUser = window.netlifyIdentity.currentUser();
         if (currentUser) {
-          syncFromUser(currentUser);
+          await syncFromUser(currentUser);
         }
 
         window.netlifyIdentity.on('init', (user) => {
@@ -100,17 +101,28 @@
       }
 
       document.body.style.opacity = '1';
-      renderHistory();
+      await renderHistory();
     });
 
     function goBack() {
       window.location.assign('/assets/home.html');
     }
 
-    function renderHistory() {
+    async function renderHistory() {
       const historyList = document.getElementById('historyList');
+
+      if (!currentUserKey) {
+        historyList.innerHTML = `
+          <div class="entry-empty">
+            <p>No journal entries yet.</p>
+            <p>Your last 10 entries will appear here automatically.</p>
+          </div>
+        `;
+        return;
+      }
+
       const entries = (window.JournalStore && typeof window.JournalStore.getLastJournalEntries === 'function')
-        ? window.JournalStore.getLastJournalEntries(currentUserKey, 10)
+        ? await window.JournalStore.getLastJournalEntries(currentUserKey, 10)
         : [];
 
       if (!entries.length) {

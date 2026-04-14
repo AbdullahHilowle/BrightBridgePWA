@@ -102,13 +102,14 @@
   </a>
   
   <script src="/js/identity-display.js"></script>
+  <script src="/js/databaseManager.js"></script>
   <script src="/js/journal-store.js"></script>
   <script>
     let selectedMood = null;
-    let currentUserKey = 'anonymous';
+    let currentUserKey = null;
     let isEditMode = false;
     
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       const identityDisplay = window.IdentityDisplayName || {};
       const params = new URLSearchParams(window.location.search);
       isEditMode = params.get('mode') === 'edit';
@@ -135,7 +136,7 @@
 
         let didResolveInit = false;
 
-        const syncFromUser = (user) => {
+        const syncFromUser = async (user) => {
           if (!user) {
             if (didResolveInit) {
               window.location.assign('/assets/login.html');
@@ -151,14 +152,14 @@
           }
 
           if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
-            currentUserKey = window.JournalStore.resolveUserKey(user);
-            loadTodayEntry();
+            currentUserKey = await window.JournalStore.resolveUserKey(user);
+            await loadTodayEntry();
           }
         };
 
         const currentUser = window.netlifyIdentity.currentUser();
         if (currentUser) {
-          syncFromUser(currentUser);
+          await syncFromUser(currentUser);
         }
 
         window.netlifyIdentity.on('init', (user) => {
@@ -169,7 +170,7 @@
       }
       
       document.body.style.opacity = '1';
-      loadTodayEntry();
+      await loadTodayEntry();
     });
 
     function setWelcomeName(name) {
@@ -203,12 +204,16 @@
       window.location.assign('/assets/daily-checkin.html');
     }
     
-    function loadTodayEntry() {
+    async function loadTodayEntry() {
       if (!window.JournalStore || typeof window.JournalStore.getTodayEntry !== 'function') {
         return;
       }
 
-      const todayEntry = window.JournalStore.getTodayEntry(currentUserKey);
+      if (!currentUserKey) {
+        return;
+      }
+
+      const todayEntry = await window.JournalStore.getTodayEntry(currentUserKey);
       if (!todayEntry) {
         return;
       }
@@ -235,31 +240,33 @@
       }
     }
 
-    function selectMood(mood) {
+    async function selectMood(mood) {
       applyMoodSelection(mood);
 
       const selectedBtn = document.querySelector(`[data-mood="${mood}"]`);
       
       // Keep page logic simple by delegating storage details to JournalStore.
       if (window.JournalStore && typeof window.JournalStore.saveMood === 'function') {
-        window.JournalStore.saveMood(currentUserKey, mood);
+        await window.JournalStore.saveMood(currentUserKey, mood);
       }
-      
-      selectedBtn.style.transform = 'scale(1.1)';
-      setTimeout(() => {
-        selectedBtn.style.transform = '';
-      }, 200);
+
+      if (selectedBtn) {
+        selectedBtn.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          selectedBtn.style.transform = '';
+        }, 200);
+      }
     }
     
-    function submitJournal(event) {
+    async function submitJournal(event) {
       event.preventDefault();
       
       const journalEntry = document.getElementById('dailyEntry').value;
 
       if (window.JournalStore && typeof window.JournalStore.saveOrUpdateTodayEntry === 'function') {
-        window.JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
+        await window.JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
       } else if (window.JournalStore && typeof window.JournalStore.saveJournalEntry === 'function') {
-        window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
+        await window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
       }
 
       localStorage.setItem('brightbridge_returning_user', 'true');

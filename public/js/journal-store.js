@@ -1,144 +1,163 @@
-// Shared localStorage helper for mood + journal check-ins.
-// Keeping this in one file makes future Supabase migration easier.
 (function (global) {
-  const MOOD_KEY = 'brightbridge_mood_history';
-  const JOURNAL_KEY = 'brightbridge_journal';
-
-  function getTodayDateLabel() {
-    return new Date().toLocaleDateString();
+  function isEmail(value) {
+    return typeof value === 'string' && value.includes('@');
   }
 
-  function readList(key) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) {
-        return [];
-      }
-
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      return [];
-    }
-  }
-
-  function writeList(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
-
-  function resolveUserKey(user) {
-    if (user && user.id) {
-      return String(user.id);
+  function toDateLabel(dateValue) {
+    if (!dateValue) {
+      return '';
     }
 
-    const storedName = (localStorage.getItem('brightbridge_username') || '').trim();
-    if (storedName) {
-      return `name:${storedName.toLowerCase()}`;
-    }
-
-    return 'anonymous';
+    const date = new Date(`${dateValue}T00:00:00`);
+    return date.toLocaleDateString();
   }
 
-  function saveMood(userKey, mood) {
-    if (!mood) {
+  function moodToBit(mood) {
+    if (mood === 'happy') {
+      return '1';
+    }
+
+    if (mood === 'sad') {
+      return '0';
+    }
+
+    return null;
+  }
+
+  function bitToMood(value) {
+    if (value === null || value === undefined) {
+      return 'neutral';
+    }
+
+    if (value === true || value === 1 || value === '1' || value === 't' || value === 'true') {
+      return 'happy';
+    }
+
+    if (value === false || value === 0 || value === '0' || value === 'f' || value === 'false') {
+      return 'sad';
+    }
+
+    return 'neutral';
+  }
+
+  function mapRowToEntry(row, userKey) {
+    if (!row) {
       return null;
     }
 
-    const entry = {
+    return {
       userKey,
-      mood,
-      timestamp: new Date().toISOString(),
-      date: new Date().toLocaleDateString()
+      content: row.entry || '',
+      mood: bitToMood(row.overall_emotion),
+      timestamp: row.created_date ? `${row.created_date}T00:00:00.000Z` : null,
+      date: toDateLabel(row.created_date)
     };
-
-    const list = readList(MOOD_KEY);
-    list.push(entry);
-    writeList(MOOD_KEY, list);
-    return entry;
   }
 
-  function saveJournalEntry(userKey, content, mood) {
-    const trimmed = (content || '').trim();
-    if (!trimmed) {
+  async function resolveUserKey(user) {
+    if (user && isEmail(user.email)) {
+      return user.email.trim().toLowerCase();
+    }
+
+    const stored = (localStorage.getItem('brightbridge_username') || '').trim().toLowerCase();
+    return isEmail(stored) ? stored : null;
+  }
+
+  async function resolveAuthorId(userKey) {
+    if (!global.DatabaseManager || typeof global.DatabaseManager.ensureUserByEmail !== 'function') {
+      console.error('DatabaseManager is not available.');
       return null;
     }
 
-    const entry = {
-      userKey,
-      content: trimmed,
-      mood: mood || null,
-      timestamp: new Date().toISOString(),
-      date: new Date().toLocaleDateString()
-    };
+    if (!isEmail(userKey)) {
+      return null;
+    }
 
-    const list = readList(JOURNAL_KEY);
-    list.push(entry);
-    writeList(JOURNAL_KEY, list);
-    return entry;
+    const result = await global.DatabaseManager.ensureUserByEmail(userKey);
+    if (result.error || !result.data || !result.data.id) {
+      console.error('Unable to resolve user from email.', result.error);
+      return null;
+    }
+
+    return result.data.id;
   }
 
-  function getTodayEntry(userKey) {
-    const today = getTodayDateLabel();
+  async function getTodayEntry(userKey) {
+    const authorId = await resolveAuthorId(userKey);
+    if (!authorId) {
+      return null;
+    }
 
-    return readList(JOURNAL_KEY)
-      .filter(item => item && item.userKey === userKey && item.date === today)
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0] || null;
+    const today = global.DatabaseManager.getTodayDate();
+    const result = await global.DatabaseManager.getTodayEntry(authorId, today);
+    if (result.error) {
+      console.error('Error loading today journal entry.', result.error);
+      return null;
+    }
+
+    return mapRowToEntry(result.data, userKey);
   }
 
-  function saveOrUpdateTodayEntry(userKey, content, mood) {
+  async function saveOrUpdateTodayEntry(userKey, content, mood) {
     const trimmed = (content || '').trim();
     if (!trimmed && !mood) {
       return null;
     }
 
-    const nowIso = new Date().toISOString();
-    const today = getTodayDateLabel();
-    const list = readList(JOURNAL_KEY);
-    let target = null;
-
-    // Update the most recent entry for today instead of adding duplicates.
-    for (let i = list.length - 1; i >= 0; i -= 1) {
-      const item = list[i];
-      if (item && item.userKey === userKey && item.date === today) {
-        target = item;
-        break;
-      }
+    const authorId = await resolveAuthorId(userKey);
+    if (!authorId) {
+      return null;
     }
 
-    if (target) {
-      if (trimmed) {
-        target.content = trimmed;
-      }
+    const createdDate = global.DatabaseManager.getTodayDate();
+    const current = await global.DatabaseManager.getTodayEntry(authorId, createdDate);
+    const currentRow = current && current.data ? current.data : null;
 
-      if (mood) {
-        target.mood = mood;
-      }
+    const nextContent = trimmed || (currentRow && currentRow.entry) || null;
+    const nextEmotion = mood
+      ? moodToBit(mood)
+      : (currentRow ? currentRow.overall_emotion : null);
 
-      target.timestamp = nowIso;
-      writeList(JOURNAL_KEY, list);
-      return target;
+    const upsert = await global.DatabaseManager.upsertTodayEntry(
+      authorId,
+      createdDate,
+      nextContent,
+      nextEmotion
+    );
+
+    if (upsert.error) {
+      console.error('Error saving journal entry.', upsert.error);
+      return null;
     }
 
-    const entry = {
-      userKey,
-      content: trimmed,
-      mood: mood || null,
-      timestamp: nowIso,
-      date: today
-    };
-
-    list.push(entry);
-    writeList(JOURNAL_KEY, list);
-    return entry;
+    return mapRowToEntry(upsert.data, userKey);
   }
 
-  function getLastJournalEntries(userKey, limit) {
-    const max = Number(limit) > 0 ? Number(limit) : 10;
+  async function saveJournalEntry(userKey, content, mood) {
+    return saveOrUpdateTodayEntry(userKey, content, mood);
+  }
 
-    return readList(JOURNAL_KEY)
-      .filter(item => item && item.userKey === userKey)
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      .slice(0, max);
+  async function saveMood(userKey, mood) {
+    if (!mood) {
+      return null;
+    }
+
+    return saveOrUpdateTodayEntry(userKey, '', mood);
+  }
+
+  async function getLastJournalEntries(userKey, limit) {
+    const authorId = await resolveAuthorId(userKey);
+    if (!authorId) {
+      return [];
+    }
+
+    const result = await global.DatabaseManager.getRecentEntries(authorId, limit);
+    if (result.error || !Array.isArray(result.data)) {
+      console.error('Error loading recent journal entries.', result.error);
+      return [];
+    }
+
+    return result.data.map((row) => mapRowToEntry(row, userKey)).filter(Boolean);
   }
 
   global.JournalStore = {
