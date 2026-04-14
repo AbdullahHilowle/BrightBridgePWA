@@ -55,6 +55,7 @@
   }
 
   async function resolveUserKey(user) {
+    // Keep user key as email because DB schema links journal_entry.author_id -> users.id via users.email lookup.
     if (user && isEmail(user.email)) {
       return user.email.trim().toLowerCase();
     }

@@ -102,6 +102,7 @@
   </a>
   
   <script src="/js/identity-display.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/databaseManager.js"></script>
   <script src="/js/journal-store.js"></script>
   <script>
@@ -263,10 +264,16 @@
       
       const journalEntry = document.getElementById('dailyEntry').value;
 
+      let savedEntry = null;
       if (window.JournalStore && typeof window.JournalStore.saveOrUpdateTodayEntry === 'function') {
-        await window.JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
+        savedEntry = await window.JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
       } else if (window.JournalStore && typeof window.JournalStore.saveJournalEntry === 'function') {
-        await window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
+        savedEntry = await window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
+      }
+
+      if (!savedEntry) {
+        alert('We could not save your journal entry. Please try again.');
+        return;
       }
 
       localStorage.setItem('brightbridge_returning_user', 'true');
