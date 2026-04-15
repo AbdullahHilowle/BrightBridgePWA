@@ -37,6 +37,72 @@
     return `uid_${hashed}`;
   }
 
+  function decodeJwtPayload(token) {
+    try {
+      const parts = String(token || '').split('.');
+      if (parts.length < 2) {
+        return null;
+      }
+
+      const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+      const json = atob(padded);
+      return JSON.parse(json);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function getUserFromStorage() {
+    const raw = localStorage.getItem('brightbridge.user');
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function getActiveIdentityUser() {
+    if (global.netlifyIdentity && typeof global.netlifyIdentity.currentUser === 'function') {
+      try {
+        const currentUser = global.netlifyIdentity.currentUser();
+        if (currentUser) {
+          return currentUser;
+        }
+      } catch (error) {
+        // Ignore runtime widget errors and fallback to storage.
+      }
+    }
+
+    return getUserFromStorage();
+  }
+
+  function identifierFromUser(user) {
+    if (!user) {
+      return null;
+    }
+
+    if (user.id) {
+      return toUserIdentifier(user.id);
+    }
+
+    const token = user && user.token ? (user.token.access_token || user.token.id_token) : null;
+    const payload = decodeJwtPayload(token);
+    if (payload && payload.sub) {
+      return toUserIdentifier(payload.sub);
+    }
+
+    if (user.email) {
+      return toUserIdentifier(user.email);
+    }
+
+    return null;
+  }
+
   function toDateLabel(dateValue) {
     if (!dateValue) {
       return '';
@@ -88,29 +154,31 @@
     };
   }
 
-  async function resolveUserKey(user) {
-    if (user && user.id) {
-      return toUserIdentifier(user.id);
-    }
+  async function resolveUserKey(userOrKey) {
+    setLastError('');
 
-    if (user && user.email) {
-      return toUserIdentifier(user.email);
-    }
-
-    const storedUserRaw = localStorage.getItem('brightbridge.user');
-    if (storedUserRaw) {
-      try {
-        const storedUser = JSON.parse(storedUserRaw);
-        if (storedUser && storedUser.id) {
-          return toUserIdentifier(storedUser.id);
-        }
-      } catch (error) {
-        // Ignore malformed cache and continue with other fallbacks.
+    if (typeof userOrKey === 'string' && userOrKey.trim()) {
+      const direct = toUserIdentifier(userOrKey);
+      if (direct) {
+        return direct;
       }
     }
 
-    const fallbackName = (localStorage.getItem('brightbridge_username') || '').trim();
-    return toUserIdentifier(fallbackName);
+    if (userOrKey && typeof userOrKey === 'object') {
+      const fromObject = identifierFromUser(userOrKey);
+      if (fromObject) {
+        return fromObject;
+      }
+    }
+
+    const activeUser = getActiveIdentityUser();
+    const fromSession = identifierFromUser(activeUser);
+    if (fromSession) {
+      return fromSession;
+    }
+
+    setLastError('Session is not ready or you are signed out. Please log in again.');
+    return null;
   }
 
   async function resolveAuthorId(userKey) {
@@ -123,13 +191,14 @@
       return null;
     }
 
-    if (!userKey) {
-      const message = 'No authenticated user identifier is available.';
+    const resolvedUserKey = userKey || await resolveUserKey();
+    if (!resolvedUserKey) {
+      const message = lastErrorMessage || 'Session is not ready or you are signed out. Please log in again.';
       setLastError(message);
       return null;
     }
 
-    const result = await global.DatabaseManager.ensureUserByEmail(userKey);
+    const result = await global.DatabaseManager.ensureUserByEmail(resolvedUserKey);
     if (result.error || !result.data || !result.data.id) {
       const message = result && result.error && result.error.message
         ? result.error.message

@@ -112,16 +112,6 @@
     async function renderHistory() {
       const historyList = document.getElementById('historyList');
 
-      if (!currentUserKey) {
-        historyList.innerHTML = `
-          <div class="entry-empty">
-            <p>No journal entries yet.</p>
-            <p>Your last 10 entries will appear here automatically.</p>
-          </div>
-        `;
-        return;
-      }
-
       const entries = (window.JournalStore && typeof window.JournalStore.getLastJournalEntries === 'function')
         ? await window.JournalStore.getLastJournalEntries(currentUserKey, 10)
         : [];

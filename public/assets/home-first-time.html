@@ -210,10 +210,6 @@
         return;
       }
 
-      if (!currentUserKey) {
-        return;
-      }
-
       const todayEntry = await window.JournalStore.getTodayEntry(currentUserKey);
       if (!todayEntry) {
         return;
