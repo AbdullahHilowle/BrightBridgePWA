@@ -5,36 +5,10 @@
     lastErrorMessage = message ? String(message) : '';
   }
 
-  function hashToBase36(input) {
-    const text = String(input || '');
-    let h1 = 2166136261;
-    let h2 = 16777619;
-
-    for (let i = 0; i < text.length; i += 1) {
-      const code = text.charCodeAt(i);
-      h1 ^= code;
-      h1 = Math.imul(h1, 16777619);
-      h2 ^= code + i;
-      h2 = Math.imul(h2, 2246822519);
-    }
-
-    const part1 = (h1 >>> 0).toString(36);
-    const part2 = (h2 >>> 0).toString(36);
-    return `${part1}${part2}`;
-  }
-
-  function toUserIdentifier(rawValue) {
-    const raw = String(rawValue || '').trim().toLowerCase();
-    if (!raw) {
-      return null;
-    }
-
-    if (raw.length <= 25) {
-      return raw;
-    }
-
-    const hashed = hashToBase36(raw).slice(0, 21);
-    return `uid_${hashed}`;
+  function normalizeUuid(value) {
+    const uuid = String(value || '').trim().toLowerCase();
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidPattern.test(uuid) ? uuid : null;
   }
 
   function decodeJwtPayload(token) {
@@ -81,23 +55,38 @@
     return getUserFromStorage();
   }
 
-  function identifierFromUser(user) {
+  function uuidFromUser(user) {
     if (!user) {
       return null;
     }
 
-    if (user.id) {
-      return toUserIdentifier(user.id);
+    const directUuid = normalizeUuid(user.id);
+    if (directUuid) {
+      return directUuid;
     }
 
     const token = user && user.token ? (user.token.access_token || user.token.id_token) : null;
     const payload = decodeJwtPayload(token);
     if (payload && payload.sub) {
-      return toUserIdentifier(payload.sub);
+      return normalizeUuid(payload.sub);
+    }
+
+    return null;
+  }
+
+  function emailFromUser(user) {
+    if (!user) {
+      return null;
     }
 
     if (user.email) {
-      return toUserIdentifier(user.email);
+      return String(user.email).trim().toLowerCase();
+    }
+
+    const token = user && user.token ? (user.token.access_token || user.token.id_token) : null;
+    const payload = decodeJwtPayload(token);
+    if (payload && payload.email) {
+      return String(payload.email).trim().toLowerCase();
     }
 
     return null;
@@ -154,71 +143,77 @@
     };
   }
 
-  async function resolveUserKey(userOrKey) {
+  async function resolveDbIdentity(userOrKey) {
     setLastError('');
 
     if (typeof userOrKey === 'string' && userOrKey.trim()) {
-      const direct = toUserIdentifier(userOrKey);
-      if (direct) {
-        return direct;
+      const directUuid = normalizeUuid(userOrKey);
+      if (directUuid) {
+        const sessionUser = getActiveIdentityUser();
+        return { uuid: directUuid, email: emailFromUser(sessionUser) };
       }
     }
 
     if (userOrKey && typeof userOrKey === 'object') {
-      const fromObject = identifierFromUser(userOrKey);
-      if (fromObject) {
-        return fromObject;
+      const objectUuid = uuidFromUser(userOrKey);
+      if (objectUuid) {
+        return { uuid: objectUuid, email: emailFromUser(userOrKey) };
       }
     }
 
     const activeUser = getActiveIdentityUser();
-    const fromSession = identifierFromUser(activeUser);
-    if (fromSession) {
-      return fromSession;
+    const sessionUuid = uuidFromUser(activeUser);
+    if (sessionUuid) {
+      return { uuid: sessionUuid, email: emailFromUser(activeUser) };
     }
 
-    setLastError('Session is not ready or you are signed out. Please log in again.');
+    setLastError('Session UUID is unavailable. Please sign out and log in again.');
     return null;
   }
 
-  async function resolveAuthorId(userKey) {
+  async function resolveDbUuid(userKey) {
     setLastError('');
 
-    if (!global.DatabaseManager || typeof global.DatabaseManager.ensureUserByEmail !== 'function') {
+    if (!global.DatabaseManager || typeof global.DatabaseManager.ensureUserByUuid !== 'function') {
       const message = 'DatabaseManager is not available.';
       setLastError(message);
       console.error(message);
       return null;
     }
 
-    const resolvedUserKey = userKey || await resolveUserKey();
-    if (!resolvedUserKey) {
-      const message = lastErrorMessage || 'Session is not ready or you are signed out. Please log in again.';
+    const identity = await resolveDbIdentity(userKey);
+    if (!identity || !identity.uuid) {
+      const message = lastErrorMessage || 'Session UUID is unavailable. Please sign out and log in again.';
       setLastError(message);
       return null;
     }
 
-    const result = await global.DatabaseManager.ensureUserByEmail(resolvedUserKey);
-    if (result.error || !result.data || !result.data.id) {
+    const result = await global.DatabaseManager.ensureUserByUuid(identity.uuid, identity.email);
+    if (result.error || !result.data || !result.data.uuid) {
       const message = result && result.error && result.error.message
         ? result.error.message
-        : 'Unable to resolve database user id.';
+        : 'Unable to resolve database user UUID.';
       setLastError(message);
-      console.error('Unable to resolve user identifier in database.', result.error);
+      console.error('Unable to resolve user UUID in database.', result.error);
       return null;
     }
 
-    return result.data.id;
+    return result.data.uuid;
+  }
+
+  async function resolveUserKey(userOrKey) {
+    const identity = await resolveDbIdentity(userOrKey);
+    return identity ? identity.uuid : null;
   }
 
   async function getTodayEntry(userKey) {
-    const authorId = await resolveAuthorId(userKey);
-    if (!authorId) {
+    const uuid = await resolveDbUuid(userKey);
+    if (!uuid) {
       return null;
     }
 
     const today = global.DatabaseManager.getTodayDate();
-    const result = await global.DatabaseManager.getTodayEntry(authorId, today);
+    const result = await global.DatabaseManager.getTodayEntry(uuid, today);
     if (result.error) {
       setLastError(result.error.message || 'Error loading today journal entry.');
       console.error('Error loading today journal entry.', result.error);
@@ -234,13 +229,13 @@
       return null;
     }
 
-    const authorId = await resolveAuthorId(userKey);
-    if (!authorId) {
+    const uuid = await resolveDbUuid(userKey);
+    if (!uuid) {
       return null;
     }
 
     const createdDate = global.DatabaseManager.getTodayDate();
-    const current = await global.DatabaseManager.getTodayEntry(authorId, createdDate);
+    const current = await global.DatabaseManager.getTodayEntry(uuid, createdDate);
     const currentRow = current && current.data ? current.data : null;
 
     const nextContent = trimmed || (currentRow && currentRow.entry) || null;
@@ -249,7 +244,7 @@
       : (currentRow ? currentRow.overall_emotion : null);
 
     const upsert = await global.DatabaseManager.upsertTodayEntry(
-      authorId,
+      uuid,
       createdDate,
       nextContent,
       nextEmotion
@@ -277,12 +272,12 @@
   }
 
   async function getLastJournalEntries(userKey, limit) {
-    const authorId = await resolveAuthorId(userKey);
-    if (!authorId) {
+    const uuid = await resolveDbUuid(userKey);
+    if (!uuid) {
       return [];
     }
 
-    const result = await global.DatabaseManager.getRecentEntries(authorId, limit);
+    const result = await global.DatabaseManager.getRecentEntries(uuid, limit);
     if (result.error || !Array.isArray(result.data)) {
       setLastError((result && result.error && result.error.message) || 'Error loading recent journal entries.');
       console.error('Error loading recent journal entries.', result.error);

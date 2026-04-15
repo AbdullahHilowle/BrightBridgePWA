@@ -12,7 +12,6 @@
 
     const db = {
         supabase,
-        // Canonical format for journal_entry date key.
         getTodayDate() {
             const now = new Date();
             const year = now.getFullYear();
@@ -21,42 +20,66 @@
             return `${year}-${month}-${day}`;
         },
 
-        async getUserByEmail(email) {
-            const normalized = String(email || '').trim().toLowerCase();
-            if (!normalized) {
-                return { data: null, error: { message: 'Email is required.' } };
+        async getUserByUuid(uuid) {
+            const normalizedUuid = String(uuid || '').trim().toLowerCase();
+            if (!normalizedUuid) {
+                return { data: null, error: { message: 'UUID is required.' } };
             }
 
             const { data, error } = await this.supabase
                 .from('users')
-                .select('id,email')
-                .eq('email', normalized)
+                .select('uuid,email')
+                .eq('uuid', normalizedUuid)
                 .maybeSingle();
 
             return { data: data || null, error };
         },
 
-        async ensureUserByEmail(email) {
-            const found = await this.getUserByEmail(email);
+        async ensureUserByUuid(uuid, email) {
+            const normalizedUuid = String(uuid || '').trim().toLowerCase();
+            const normalizedEmail = String(email || '').trim().toLowerCase();
+
+            if (!normalizedUuid) {
+                return { data: null, error: { message: 'UUID is required.' } };
+            }
+
+            const found = await this.getUserByUuid(normalizedUuid);
             if (found.error) {
                 return found;
             }
 
             if (found.data) {
+                if (normalizedEmail && found.data.email !== normalizedEmail) {
+                    const { data, error } = await this.supabase
+                        .from('users')
+                        .update({ email: normalizedEmail })
+                        .eq('uuid', normalizedUuid)
+                        .select('uuid,email')
+                        .maybeSingle();
+
+                    if (error) {
+                        return { data: null, error };
+                    }
+
+                    return { data: data || null, error: null };
+                }
+
                 return found;
             }
 
-            const normalized = String(email || '').trim().toLowerCase();
+            if (!normalizedEmail) {
+                return { data: null, error: { message: 'Email is required when creating a new user profile.' } };
+            }
+
             const { data, error } = await this.supabase
                 .from('users')
-                .insert({ email: normalized })
-                .select('id,email')
+                .insert({ uuid: normalizedUuid, email: normalizedEmail })
+                .select('uuid,email')
                 .maybeSingle();
 
             if (error) {
-                // Another client may have inserted the same unique email.
                 if (String(error.code || '').toUpperCase() === '23505') {
-                    return this.getUserByEmail(normalized);
+                    return this.getUserByUuid(normalizedUuid);
                 }
 
                 return { data: null, error };
@@ -65,20 +88,20 @@
             return { data: data || null, error: null };
         },
 
-        async getTodayEntry(authorId, createdDate) {
+        async getTodayEntry(uuid, createdDate) {
             const { data, error } = await this.supabase
                 .from('journal_entry')
-                .select('created_date,overall_emotion,entry,author_id')
-                .eq('author_id', authorId)
+                .select('created_date,overall_emotion,entry,uuid')
+                .eq('uuid', uuid)
                 .eq('created_date', createdDate)
                 .maybeSingle();
 
             return { data: data || null, error };
         },
 
-        async upsertTodayEntry(authorId, createdDate, entryText, overallEmotion) {
+        async upsertTodayEntry(uuid, createdDate, entryText, overallEmotion) {
             const payload = {
-                author_id: authorId,
+                uuid,
                 created_date: createdDate,
                 entry: entryText,
                 overall_emotion: overallEmotion
@@ -86,19 +109,19 @@
 
             const { data, error } = await this.supabase
                 .from('journal_entry')
-                .upsert(payload, { onConflict: 'author_id,created_date' })
-                .select('created_date,overall_emotion,entry,author_id')
+                .upsert(payload, { onConflict: 'uuid,created_date' })
+                .select('created_date,overall_emotion,entry,uuid')
                 .maybeSingle();
 
             return { data: data || null, error };
         },
 
-        async getRecentEntries(authorId, limit) {
+        async getRecentEntries(uuid, limit) {
             const max = Number(limit) > 0 ? Number(limit) : 10;
             const { data, error } = await this.supabase
                 .from('journal_entry')
-                .select('created_date,overall_emotion,entry,author_id')
-                .eq('author_id', authorId)
+                .select('created_date,overall_emotion,entry,uuid')
+                .eq('uuid', uuid)
                 .order('created_date', { ascending: false })
                 .limit(max);
 
