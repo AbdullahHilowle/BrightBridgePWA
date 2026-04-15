@@ -272,7 +272,10 @@
       }
 
       if (!savedEntry) {
-        alert('We could not save your journal entry. Please try again.');
+        const details = (window.JournalStore && typeof window.JournalStore.getLastError === 'function')
+          ? window.JournalStore.getLastError()
+          : '';
+        alert(`We could not save your journal entry. ${details || 'Please try again.'}`);
         return;
       }
 
