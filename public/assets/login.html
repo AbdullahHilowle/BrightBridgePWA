@@ -8,18 +8,15 @@
   
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="mobile-web-app-capable" content="yes">
   
   <title>BrightBridge - Login</title>
   
-  <!-- Styles for the page-->
-  <link rel="stylesheet" href="/test/css/styles.css">
-  <link rel="stylesheet" href="/test/css/loginStyles.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <link rel="stylesheet" href="/assets/css/loginStyles.css">
 
-  <!-- The line that allows netlify identity-->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <script src="/js/app.js" type="module"></script>
-  
+
 </head>
 <body class="gradient-bg full-height">
   
@@ -27,24 +24,20 @@
     
     <div class="login-card fade-in">
       <h1 class="text-center text-white mb-lg">Welcome to BrightBridge!</h1>
-      
 
-      <!-- The class that will contain the login creds-->
       <div class="container">
         <header>
-            <div id="auth-controls">
-                <!-- Auth buttons will be injected here -->
-            </div>
+          <div id="auth-controls">
+            <!-- Auth buttons will be injected here -->
+          </div>
         </header>
 
         <main>
-            <!-- Login/Signup View -->
-            <div id="auth-view" class="view">
-                <button id="login-btn" class="btn btn-primary">Log In / Sign Up</button>
-            </div>
+          <div id="auth-view" class="view">
+            <button id="login-btn" class="btn btn-primary">Log In / Sign Up</button>
+          </div>
         </main>
-    </div>
-
+      </div>
       
       <div class="login-options mt-md">
         <p class="text-center text-white" style="font-size: var(--font-size-xs);">
@@ -65,6 +58,6 @@
       document.body.style.opacity = '1';
     });
   </script>
-  
+
 </body>
 </html>
