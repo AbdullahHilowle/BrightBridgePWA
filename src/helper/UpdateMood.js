@@ -1,3 +1,5 @@
+
+
 window.addEventListener('load', () => {
       const identityDisplay = window.IdentityDisplayName || {};
       const userDisplay = document.getElementById('user-display');
@@ -74,3 +76,5 @@ window.addEventListener('load', () => {
         setTimeout(() => notification.remove(), 300);
       }, 2000);
     }
+
+    export default {quickMoodCheck}

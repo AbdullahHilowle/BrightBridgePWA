@@ -8,6 +8,7 @@ import '../css/styles.css'
 import '../css/homeStyles.css'
 
 import '../helper/UpdateMood.js'
+import quickMoodCheck from '../helper/UpdateMood.js'
 import App from '../authentification/app.js'
 
 //returns the home page of the pwa
@@ -48,13 +49,13 @@ function Home(){
       </p>
       
       <div className="mood-selector" style={{justifyContent: 'flex-start'}}>
-        <button className="mood-btn happy" onClick="quickMoodCheck('happy')" aria-label="Happy">
+        <button className="mood-btn happy" onClick={quickMoodCheck('happy')} aria-label="Happy">
           😊
         </button>
-        <button className="mood-btn neutral" onClick="quickMoodCheck('neutral')" aria-label="Neutral">
+        <button className="mood-btn neutral" onClick={quickMoodCheck('neutral')} aria-label="Neutral">
           😐
         </button>
-        <button className="mood-btn sad" onClick="quickMoodCheck('sad')" aria-label="Sad">
+        <button className="mood-btn sad" onClick={quickMoodCheck('sad')} aria-label="Sad">
           ☹️
         </button>
       </div>
@@ -114,7 +115,7 @@ function Home(){
     
   </main>
   
-  <Link href="/help" className="help-fab pulse" aria-label="Get help now">
+  <Link to="/help" className="help-fab pulse" aria-label="Get help now">
     <span style={{fontWeight: 700, fontSize: '18px'}}>HELP</span>
   </Link>
 
