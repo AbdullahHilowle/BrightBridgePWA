@@ -27,8 +27,6 @@ window.addEventListener('load', () => {
         window.netlifyIdentity.on('init', syncFromUser);
         window.netlifyIdentity.on('login', syncFromUser);
       }
-
-      document.body.style.opacity = '1';
     });
     
     function quickMoodCheck(event, mood) {

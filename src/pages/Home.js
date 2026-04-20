@@ -16,6 +16,7 @@ function Home(){
     const navigate = useNavigate();
 
     useEffect(()=>{
+        document.body.style.opacity = '1';
         App.navigate = navigate;
         App.updateAuthUI();
     }, [navigate]);
