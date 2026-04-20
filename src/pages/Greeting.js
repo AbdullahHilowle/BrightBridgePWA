@@ -21,7 +21,7 @@ function Greeting(){
     }
 
     return <>
-    <div class="gradient-bg full-height full-width center-content">
+    <div className="gradient-bg full-height full-width center-content">
         <main className="container center-content" style={{ flex: 1 }}>
           
     

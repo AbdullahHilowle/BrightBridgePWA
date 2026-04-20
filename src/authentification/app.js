@@ -1,7 +1,7 @@
 import Auth from './auth.js'
 
 // Main app module - handles UI and orchestrates auth and data modules
-const App = {
+const AuthApp = {
     navigate : null,
 
     elements: {},
@@ -95,13 +95,13 @@ const App = {
 };
 
 // Expose App globally so Auth can call updateAuthUI
-window.App = App;
+window.App = AuthApp;
 
 // Initialize app when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => App.init());
+    document.addEventListener('DOMContentLoaded', () => AuthApp.init());
 } else {
-    App.init();
+    AuthApp.init();
 }
 
-export default App
+export default AuthApp

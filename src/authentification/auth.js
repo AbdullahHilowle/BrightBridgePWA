@@ -3,10 +3,25 @@ import {getJWTToken, parseUserToken} from './tokenManager.js'
 
 // Auth module - handles Netlify Identity authentication
 const Auth = {
-    netlifyIdentity : window.netlifyIdentity,
+    get netlifyIdentity() {
+        return window.netlifyIdentity;
+    },
     user: null,
     
     init() { 
+        if (window.netlifyIdentity) {
+            
+        } else {
+            // 2. If not, wait for the script to load
+            console.warn("Netlify Identity not found, waiting...");
+            document.addEventListener('DOMContentLoaded', () => {
+                if (window.netlifyIdentity) {
+                    
+                } else {
+                    console.error("Netlify Identity failed to load after DOM load.");
+                }
+        });
+    }
 
         const savedUser = parseUserToken();
 
@@ -53,7 +68,10 @@ const Auth = {
     },
     
     login() {
-         this.netlifyIdentity.open();
+        if(this.netlifyIdentity)
+            this.netlifyIdentity.open();
+        else
+            console.log('Netlify is not loading');
     },
     
     logout() {

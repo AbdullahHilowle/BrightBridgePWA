@@ -77,4 +77,4 @@ window.addEventListener('load', () => {
       }, 2000);
     }
 
-    export default {quickMoodCheck}
+    export default quickMoodCheck

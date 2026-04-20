@@ -13,6 +13,14 @@ body {
       font-size: var(--font-size-lg);
       margin-bottom: var(--spacing-xs);
     }
+
+    #netlify-identity-widget {
+      z-index: 999999 !important;
+    }
+
+    .netlify-identity-overlay {
+      z-index: 999998 !important;
+    }
     
     .daily-checkin-card {
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);

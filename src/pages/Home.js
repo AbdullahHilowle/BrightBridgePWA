@@ -49,13 +49,13 @@ function Home(){
       </p>
       
       <div className="mood-selector" style={{justifyContent: 'flex-start'}}>
-        <button className="mood-btn happy" onClick={quickMoodCheck('happy')} aria-label="Happy">
+        <button className="mood-btn happy" onClick={(e)=>{quickMoodCheck(e, 'happy')}} aria-label="Happy">
           😊
         </button>
-        <button className="mood-btn neutral" onClick={quickMoodCheck('neutral')} aria-label="Neutral">
+        <button className="mood-btn neutral" onClick={(e)=>{quickMoodCheck(e, 'neutral')}} aria-label="Neutral">
           😐
         </button>
-        <button className="mood-btn sad" onClick={quickMoodCheck('sad')} aria-label="Sad">
+        <button className="mood-btn sad" onClick={(e)=>{quickMoodCheck(e, 'sad')}} aria-label="Sad">
           ☹️
         </button>
       </div>
