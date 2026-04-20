@@ -1,7 +1,8 @@
 import React,{useState} from 'react'
 import './css/styles.css';
 import AuthContext from './helper/AuthContext.js'
-import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom'
+/* Not using imports cause builds to fail, Add Link later*/
+import {BrowserRouter as Router, Route, Routes} from 'react-router-dom'
 
 import Conflict from './pages/Conflict.js'
 import DailyCheckin from './pages/DailyCheckin.js'
