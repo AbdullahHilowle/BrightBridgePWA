@@ -57,7 +57,7 @@ const App = {
         if (!user) {
             // Only redirect if we are NOT already on the login page{
 
-            if(path === '/login'){
+            if(path !== '/login'){
                 this.navigate?.('/login');
                 console.log('redirecting to login page');
                 return;
@@ -75,7 +75,7 @@ const App = {
             const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
             const destination = isReturningUser
                 ? '/home'
-                : '/home-first-time.html';
+                : '/home-first-time';
             if (!isReturningUser) {
                 localStorage.setItem('brightbridge_returning_user', 'true');
             }
