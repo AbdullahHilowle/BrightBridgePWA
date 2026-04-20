@@ -71,18 +71,27 @@ const App = {
         // IF THE USER EXISTS and is on login/index, redirect appropriately:
         // First-time users go to home-first-time for onboarding.
         // Returning users go straight to the standard dashboard.
-        if(path === '/login' || path ==='/') {
+        if (path === '/login' || path === '/') {
             const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
-            const destination = isReturningUser
-                ? '/home'
-                : '/home-first-time';
+            const destination = isReturningUser ? '/home' : '/home-first-time';
+
             if (!isReturningUser) {
                 localStorage.setItem('brightbridge_returning_user', 'true');
             }
-            this.navigate?.(destination);
-        }
 
-}
+            // Wrap in a function to allow retrying
+            const attemptNav = () => {
+                if (this.navigate) {
+                    this.navigate(destination);
+                } else {
+                    // If the React component hasn't shared 'navigate' yet, wait 50ms and try again
+                    setTimeout(attemptNav, 50);
+                }
+            };
+
+            attemptNav();
+        }
+    }
 };
 
 // Expose App globally so Auth can call updateAuthUI
