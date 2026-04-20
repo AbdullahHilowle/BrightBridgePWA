@@ -1,24 +1,29 @@
-import React from 'react'
-import '/css/landingStyles.css'
-import Emergency from '/src/smaller_components/Emergency.js'
+import React, {useEffect} from 'react'
+import '../css/landingStyles.css'
+import '../css/styles.css'
+import Emergency from '../smaller_components/Emergency.js'
 import { useNavigate } from 'react-router-dom'
 
 //the page for the landing page 
 function Greeting(){
 
+    useEffect(()=>{
+      document.body.style.opacity = '1';
+      document.body.style.transition = 'opacity 0.3s ease';
+    }, []);
+
     const navigate = useNavigate();
 
     function enterApp() {
-      document.body.style.opacity = '0';
-      document.body.style.transition = 'opacity 0.3s ease';
-      
       setTimeout(() => {
         navigate('/login');
       }, 300);
     }
 
     return <>
+    <div class="gradient-bg full-height full-width center-content">
         <main className="container center-content" style={{ flex: 1 }}>
+          
     
         <div className="app-icon fade-in">
         <div className="icon-container">
@@ -43,10 +48,13 @@ function Greeting(){
         <button className="tap-enter-btn fade-in" onClick={enterApp} aria-label="Tap to enter BrightBridge app">
         <span className="tap-text">Tap to Enter</span>
         </button>
+
+        
     
   </main>
   
   <Emergency/>
+  </div>
     </>
 }
 

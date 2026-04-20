@@ -1,10 +1,11 @@
 import React, {useEffect} from 'react'
 import {useNavigate} from 'react-router-dom'
 
-import '/css/loginStyles.css'
+import '../css/loginStyles.css'
+import '../css/styles.css'
 
-import Emergency from '/src/smaller_components/Emergency.js'
-import App from '/src/authentification/app.js'
+import Emergency from '../smaller_components/Emergency.js'
+import App from '../authentification/app.js'
 
 //this is the page with the login logic
 function Login() {
@@ -21,7 +22,8 @@ function Login() {
     }, [navigate]);
 
     return <>
-    <main className="container center-content" style="flex: 1; justify-content: center;">
+    <div class="gradient-bg full-height">
+    <main className="container center-content" style={{flex: 1, justifyContent: "center"}}>
     
     <div className="login-card fade-in">
       <h1 className="text-center text-white mb-lg">Welcome to BrightBridge!</h1>
@@ -39,7 +41,7 @@ function Login() {
       </div>
       
       <div className="login-options mt-md">
-        <p className="text-center text-white" style="font-size: var(--font-size-xs);">
+        <p className="text-center text-white" style={{fontSize: 'var(--font-size-xs)'}}>
           Don't have an account? Your first login will create one.
         </p>
       </div>
@@ -49,6 +51,7 @@ function Login() {
   </main>
   
   <Emergency/>
+  </div>
     </>
 }
 

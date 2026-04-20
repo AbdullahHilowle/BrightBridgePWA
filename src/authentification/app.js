@@ -1,4 +1,4 @@
-import Auth from '/js/auth.js'
+import Auth from './auth.js'
 
 // Main app module - handles UI and orchestrates auth and data modules
 const App = {

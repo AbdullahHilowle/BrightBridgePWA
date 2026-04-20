@@ -1,8 +1,9 @@
 
-import {getJWTToken, parseUserToken} from '/js/tokenManager.js'
+import {getJWTToken, parseUserToken} from './tokenManager.js'
 
 // Auth module - handles Netlify Identity authentication
 const Auth = {
+    netlifyIdentity : window.netlifyIdentity,
     user: null,
     
     init() { 
@@ -13,10 +14,10 @@ const Auth = {
             this.user = savedUser;
 
         // Initialize Netlify Identity
-        netlifyIdentity.init();
+        this.netlifyIdentity.init();
 
         // Handle redirect after email confirmation
-        netlifyIdentity.on('init', user => {
+        this.netlifyIdentity.on('init', user => {
 
             user = parseUserToken();
 
@@ -29,34 +30,34 @@ const Auth = {
         });
         
         // Set up event listeners
-        netlifyIdentity.on('login', user => {
+        this.netlifyIdentity.on('login', user => {
             this.user = user;
 
             if (user) localStorage.setItem('brightbridge.user', JSON.stringify(user));
             else localStorage.removeItem('brightbridge.user');
 
             this.onAuthChange();
-            netlifyIdentity.close();
+            this.netlifyIdentity.close();
         });
         
-        netlifyIdentity.on('logout', () => {
+        this.netlifyIdentity.on('logout', () => {
             console.log('triggering logout sequence');
             this.user = null;
             localStorage.removeItem('brightbridge.user'); // Clean up the local storage token
             this.onAuthChange();
         });
         
-        netlifyIdentity.on('error', err => {
+        this.netlifyIdentity.on('error', err => {
             console.error('Identity error:', err);
         });
     },
     
     login() {
-         netlifyIdentity.open();
+         this.netlifyIdentity.open();
     },
     
     logout() {
-        if (confirm('Are you sure you want to log out?')) {
+        if (window.confirm('Are you sure you want to log out?')) {
             // 1. Immediately wipe the data locally. 
             // We don't care what the server thinks anymore.
             this.user = null;
@@ -64,7 +65,7 @@ const Auth = {
 
             // 2. Try to tell Netlify to logout (it will likely fail with a 401/404, but that's okay)
             try {
-                netlifyIdentity.logout();
+                this.netlifyIdentity.logout();
             } catch (e) {
                 console.log("Netlify logout call failed, moving on...");
             }
