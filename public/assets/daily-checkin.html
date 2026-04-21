@@ -57,9 +57,15 @@
   </a>
 
   <script src="/js/identity-display.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/databaseManager.js"></script>
-  <script src="/js/journal-store.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+      }
+    }
+  </script>
+  <script type="module" src="/js/db.js"></script>
+  <script type="module" src="/js/subDBs/journal-store.js"></script>
   <script>
     let currentUserKey = null;
 
