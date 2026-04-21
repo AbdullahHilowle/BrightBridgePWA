@@ -300,8 +300,4 @@ const JournalStore = {
   }
 };
 
-if (typeof window !== 'undefined') {
-  window.JournalStore = JournalStore;
-}
-
 export default JournalStore;

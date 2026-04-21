@@ -60,14 +60,13 @@
   <script type="importmap">
     {
       "imports": {
-        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm",
-        "/public/js/": "/js/"
+        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
       }
     }
   </script>
-  <script type="module" src="/js/db.js"></script>
-  <script type="module" src="/js/subDBs/journal-store.js"></script>
-  <script>
+  <script type="module">
+    import JournalStore from '/js/subDBs/journal-store.js';
+
     let currentUserKey = null;
 
     window.addEventListener('load', async () => {
@@ -90,10 +89,8 @@
             ? identityDisplay.syncStoredDisplayName(user)
             : '';
 
-          if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
-            currentUserKey = await window.JournalStore.resolveUserKey(user);
-            await renderHistory();
-          }
+          currentUserKey = await JournalStore.resolveUserKey(user);
+          await renderHistory();
         };
 
         const currentUser = window.netlifyIdentity.currentUser();
@@ -115,13 +112,12 @@
     function goBack() {
       window.location.assign('/assets/home.html');
     }
+    window.goBack = goBack;
 
     async function renderHistory() {
       const historyList = document.getElementById('historyList');
 
-      const entries = (window.JournalStore && typeof window.JournalStore.getLastJournalEntries === 'function')
-        ? await window.JournalStore.getLastJournalEntries(currentUserKey, 10)
-        : [];
+      const entries = await JournalStore.getLastJournalEntries(currentUserKey, 10);
 
       if (!entries.length) {
         historyList.innerHTML = `
