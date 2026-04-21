@@ -3,15 +3,13 @@ import db from '/js/db.js';
 //this is the sub class that is going to manage the admin and editors systems
 //the prototypes will receive methods from their parents similar to inheritence in java or c++
 const adminManager = {
-    ...db,
-
     //the function that allows the users to add someone as an admin
     //the suer can be inserted into either the user or admin table
     promoteUser : async function(database, email){
         if(database != "admins" && database != "editors")
             return {error : "use admins or editors as the database"};
 
-        const user = await this.getUserId(email);
+        const user = await db.getUserId(email);
 
         try{
 
@@ -19,7 +17,7 @@ const adminManager = {
                 throw new Error('There is an error with fetching the user!');
 
             //inserts the new user as an admin
-            const admin = await this.insertData(database, { id: user.data.id });
+            const admin = await db.insertData(database, { id: user.data.id });
 
             if(admin.error)
                 throw new Error('There is an error with promoting the user!');
@@ -37,13 +35,13 @@ const adminManager = {
         if(database != "admins" && database != "editors")
             return {error : "use admins or editors as the database"};
 
-        const user = await this.getUserId(email);
+        const user = await db.getUserId(email);
 
         try{
             if(user.error || !user.data)
                 throw new Error('There is an error with fetching the user!');
 
-            const {data, error} = await this.supabase.from(database)
+            const {data, error} = await db.supabase.from(database)
                 .delete()
                 .eq("id", user.data.id)
                 .select();
@@ -74,9 +72,5 @@ const adminManager = {
     },
 
 };
-
-if (typeof window !== 'undefined') {
-    window.AdminManager = adminManager;
-}
 
 export default adminManager;
