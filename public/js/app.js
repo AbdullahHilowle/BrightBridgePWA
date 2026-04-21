@@ -4,6 +4,7 @@ import Auth from '/js/auth.js'
 const App = {
     elements: {},
     
+    // Boot the app by initializing auth, caching key DOM nodes, and wiring listeners.
     init() {
         Auth.init()
 
@@ -23,6 +24,7 @@ const App = {
         this.setupEventListeners();
     },
     
+    // Attach click handlers and initialize visible user name where elements exist.
     setupEventListeners() {
 
         if(this.elements.loginBtn)
@@ -40,8 +42,9 @@ const App = {
         
     },
     
+    // Route users to the correct page whenever auth state changes.
     updateAuthUI() {
-        console.log('swtiching the user to another page')
+        console.log('switching the user to another page')
         var savedUser = localStorage.getItem('brightbridge.user');
         var user;
 
@@ -92,4 +95,3 @@ if (document.readyState === 'loading') {
 } else {
     App.init();
 }
-
