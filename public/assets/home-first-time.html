@@ -102,10 +102,16 @@
   </a>
   
   <script src="/js/identity-display.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/databaseManager.js"></script>
-  <script src="/js/journal-store.js"></script>
-  <script>
+  <script type="importmap">
+    {
+      "imports": {
+        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+      }
+    }
+  </script>
+  <script type="module">
+    import JournalStore from '/js/subDBs/journal-store.js';
+
     let selectedMood = null;
     let currentUserKey = null;
     let isEditMode = false;
@@ -152,10 +158,8 @@
             setWelcomeName(resolvedName);
           }
 
-          if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
-            currentUserKey = await window.JournalStore.resolveUserKey(user);
-            await loadTodayEntry();
-          }
+          currentUserKey = await JournalStore.resolveUserKey(user);
+          await loadTodayEntry();
         };
 
         const currentUser = window.netlifyIdentity.currentUser();
@@ -204,13 +208,10 @@
     function goBackToDailyCheckin() {
       window.location.assign('/assets/daily-checkin.html');
     }
+    window.goBackToDailyCheckin = goBackToDailyCheckin;
     
     async function loadTodayEntry() {
-      if (!window.JournalStore || typeof window.JournalStore.getTodayEntry !== 'function') {
-        return;
-      }
-
-      const todayEntry = await window.JournalStore.getTodayEntry(currentUserKey);
+      const todayEntry = await JournalStore.getTodayEntry(currentUserKey);
       if (!todayEntry) {
         return;
       }
@@ -243,9 +244,7 @@
       const selectedBtn = document.querySelector(`[data-mood="${mood}"]`);
       
       // Keep page logic simple by delegating storage details to JournalStore.
-      if (window.JournalStore && typeof window.JournalStore.saveMood === 'function') {
-        await window.JournalStore.saveMood(currentUserKey, mood);
-      }
+      await JournalStore.saveMood(currentUserKey, mood);
 
       if (selectedBtn) {
         selectedBtn.style.transform = 'scale(1.1)';
@@ -261,15 +260,15 @@
       const journalEntry = document.getElementById('dailyEntry').value;
 
       let savedEntry = null;
-      if (window.JournalStore && typeof window.JournalStore.saveOrUpdateTodayEntry === 'function') {
-        savedEntry = await window.JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
-      } else if (window.JournalStore && typeof window.JournalStore.saveJournalEntry === 'function') {
-        savedEntry = await window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
+      if (typeof JournalStore.saveOrUpdateTodayEntry === 'function') {
+        savedEntry = await JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
+      } else if (typeof JournalStore.saveJournalEntry === 'function') {
+        savedEntry = await JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
       }
 
       if (!savedEntry) {
-        const details = (window.JournalStore && typeof window.JournalStore.getLastError === 'function')
-          ? window.JournalStore.getLastError()
+        const details = (typeof JournalStore.getLastError === 'function')
+          ? JournalStore.getLastError()
           : '';
         alert(`We could not save your journal entry. ${details || 'Please try again.'}`);
         return;
@@ -307,6 +306,9 @@
         result.then(safeRedirect).catch(safeRedirect);
       }
     }
+    window.selectMood = selectMood;
+    window.submitJournal = submitJournal;
+    window.handleLogout = handleLogout;
   </script>
   
   <style>
