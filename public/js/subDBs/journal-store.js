@@ -176,7 +176,7 @@ async function resolveDbUuid(userKey) {
   setLastError('');
 
   if (!db || typeof db.ensureUserByUuid !== 'function') {
-    const message = 'DatabaseManager is not available.';
+    const message = 'Database module is not available.';
     setLastError(message);
     console.error(message);
     return null;

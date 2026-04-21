@@ -75,8 +75,4 @@ const adminManager = {
 
 };
 
-if (typeof window !== 'undefined') {
-    window.AdminManager = adminManager;
-}
-
 export default adminManager;

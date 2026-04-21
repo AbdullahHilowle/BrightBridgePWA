@@ -156,8 +156,4 @@ const db = {
 
 }
 
-if (typeof window !== 'undefined') {
-    window.DatabaseManager = db;
-}
-
 export default db
