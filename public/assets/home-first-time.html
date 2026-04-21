@@ -101,7 +101,6 @@
     quick exit
   </a>
   
-  <script src="/js/identity-display.js"></script>
   <script type="importmap">
     {
       "imports": {
@@ -110,27 +109,28 @@
     }
   </script>
   <script type="module">
+    // Home first-time module: handles onboarding journal capture and optional edit mode.
     import JournalStore from '/js/subDBs/journal-store.js';
+    import {
+      getCachedDisplayName,
+      resolveDisplayNameFromStoredUser,
+      syncStoredDisplayName
+    } from '/js/identity-display.js';
 
     let selectedMood = null;
     let currentUserKey = null;
     let isEditMode = false;
     
     window.addEventListener('load', async () => {
-      const identityDisplay = window.IdentityDisplayName || {};
       const params = new URLSearchParams(window.location.search);
       isEditMode = params.get('mode') === 'edit';
       updateModeButtons();
 
-      const cachedName = (typeof identityDisplay.getCachedDisplayName === 'function')
-        ? identityDisplay.getCachedDisplayName()
-        : '';
+      const cachedName = getCachedDisplayName();
       if (cachedName) {
         setWelcomeName(cachedName);
       } else {
-        const storedName = (typeof identityDisplay.resolveDisplayNameFromStoredUser === 'function')
-          ? identityDisplay.resolveDisplayNameFromStoredUser()
-          : '';
+        const storedName = resolveDisplayNameFromStoredUser();
         if (storedName) {
           localStorage.setItem('brightbridge_username', storedName);
           setWelcomeName(storedName);
@@ -151,9 +151,7 @@
             return;
           }
 
-          const resolvedName = (typeof identityDisplay.syncStoredDisplayName === 'function')
-            ? identityDisplay.syncStoredDisplayName(user)
-            : '';
+          const resolvedName = syncStoredDisplayName(user);
           if (resolvedName) {
             setWelcomeName(resolvedName);
           }
@@ -178,10 +176,12 @@
       await loadTodayEntry();
     });
 
+    // Update the welcome heading with the best available display name.
     function setWelcomeName(name) {
       document.getElementById('userName').textContent = (name || 'User').trim() || 'User';
     }
 
+    // Toggle visible action buttons between first-time and edit modes.
     function updateModeButtons() {
       const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
       const editBtn = document.getElementById('editSubmitBtn');
@@ -205,11 +205,13 @@
       }
     }
 
+    // Return to the daily check-in screen when editing from history.
     function goBackToDailyCheckin() {
       window.location.assign('/assets/daily-checkin.html');
     }
     window.goBackToDailyCheckin = goBackToDailyCheckin;
     
+    // Load and render the current day's saved entry and mood if available.
     async function loadTodayEntry() {
       const todayEntry = await JournalStore.getTodayEntry(currentUserKey);
       if (!todayEntry) {
@@ -225,6 +227,7 @@
       }
     }
 
+    // Apply mood selection styling and cache the selected mood in local state.
     function applyMoodSelection(mood) {
       selectedMood = mood;
 
@@ -238,6 +241,7 @@
       }
     }
 
+    // Persist mood updates immediately for lightweight check-in behavior.
     async function selectMood(mood) {
       applyMoodSelection(mood);
 
@@ -254,6 +258,7 @@
       }
     }
     
+    // Persist journal content and route to the correct next page.
     async function submitJournal(event) {
       event.preventDefault();
       
@@ -279,6 +284,7 @@
       window.location.href = isEditMode ? '/assets/daily-checkin.html' : '/assets/home.html';
     }
 
+    // Log out with a safe redirect fallback for async identity widget behavior.
     function handleLogout() {
       const redirectToLogin = () => {
         window.location.assign('/assets/login.html');
