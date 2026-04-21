@@ -1,4 +1,4 @@
-import db from '/js/db.js'
+import db from '/js/db.js';
 
 //this is the sub class that is going to manage the admin and editors systems
 //the prototypes will receive methods from their parents similar to inheritence in java or c++
