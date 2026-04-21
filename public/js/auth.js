@@ -5,6 +5,7 @@ import {getJWTToken, parseUserToken} from '/js/tokenManager.js'
 const Auth = {
     user: null,
     
+    // Initialize Identity, restore cached session state, and wire auth event handlers.
     init() { 
 
         const savedUser = parseUserToken();
@@ -51,10 +52,12 @@ const Auth = {
         });
     },
     
+    // Open the Netlify Identity login/signup modal.
     login() {
          netlifyIdentity.open();
     },
     
+    // Clear local auth state and force navigation to the login page.
     logout() {
         if (confirm('Are you sure you want to log out?')) {
             // 1. Immediately wipe the data locally. 
@@ -76,6 +79,7 @@ const Auth = {
         }
     },
     
+    // Notify the global app shell that authentication state has changed.
     onAuthChange() {
         // This will be called by app.js to update the UI
         if (window.App && typeof window.App.updateAuthUI === 'function') {
@@ -83,17 +87,21 @@ const Auth = {
         }
     },
     
+    // Return whether an authenticated user object is currently available.
     isLoggedIn() {
         return this.user !== null;
     },
     
+    // Return the current user object from in-memory auth state.
     getUser() {
         return this.user;
     },
     
+    // Return the current access token string when logged in.
     getToken() {
         return this.user ? this.user.token.access_token : null;
     },
+    // Decode and return a friendly display name from the JWT metadata.
     getUsername(){
         try {
             const userData = getJWTToken();
@@ -105,6 +113,7 @@ const Auth = {
             return null;
         }
     },
+    // Decode and return the authenticated user UUID/subject from the JWT.
     getUserId() {
         try {
             const userData = getJWTToken();
