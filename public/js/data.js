@@ -1,5 +1,6 @@
 // Data module - handles data storage via Netlify Blobs
 const Data = {
+    // Persist a single user-owned item through the save-data serverless function.
     async saveItem(content) {
         const user = Auth.getUser();
         if (!user) {
@@ -35,6 +36,7 @@ const Data = {
         }
     },
     
+    // Load all saved items for the authenticated user.
     async loadItems() {
         const user = Auth.getUser();
         if (!user) {
@@ -61,6 +63,7 @@ const Data = {
         }
     },
     
+    // Delete a specific item for the authenticated user.
     async deleteItem(itemId) {
         const user = Auth.getUser();
         if (!user) {
