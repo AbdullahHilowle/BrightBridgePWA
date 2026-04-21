@@ -118,14 +118,13 @@
     quick exit
   </a>
   
-  <script src="/js/identity-display.js"></script>
-  <script>
+  <script type="module">
+    // Dashboard module: syncs display identity and handles quick local mood logging.
+    import { getCachedDisplayName, syncStoredDisplayName } from '/js/identity-display.js';
+
     window.addEventListener('load', () => {
-      const identityDisplay = window.IdentityDisplayName || {};
       const userDisplay = document.getElementById('user-display');
-      const cachedName = (typeof identityDisplay.getCachedDisplayName === 'function')
-        ? identityDisplay.getCachedDisplayName()
-        : '';
+      const cachedName = getCachedDisplayName();
       if (cachedName) {
         userDisplay.textContent = cachedName;
       }
@@ -135,9 +134,7 @@
         window.netlifyIdentity.init({ APIUrl: apiUrl });
 
         const syncFromUser = (user) => {
-          const resolvedName = (typeof identityDisplay.syncStoredDisplayName === 'function')
-            ? identityDisplay.syncStoredDisplayName(user)
-            : '';
+          const resolvedName = syncStoredDisplayName(user);
           if (!resolvedName) {
             return;
           }
@@ -153,6 +150,7 @@
       document.body.style.opacity = '1';
     });
     
+    // Save a lightweight mood event for quick-check-in interactions on dashboard.
     function quickMoodCheck(mood) {
       const moodEntry = {
         mood: mood,
@@ -172,7 +170,9 @@
       
       showNotification('Mood logged! Thank you for checking in.');
     }
+    window.quickMoodCheck = quickMoodCheck;
     
+    // Show a short-lived toast-style success notification.
     function showNotification(message) {
       const notification = document.createElement('div');
       notification.className = 'notification';

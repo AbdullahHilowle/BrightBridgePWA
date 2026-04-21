@@ -1,17 +1,22 @@
+// JournalStore module for journal entry persistence, identity resolution, and UI-friendly data mapping.
 import db from '/js/db.js';
 
+// Track the latest human-readable error for UI display and debugging.
 let lastErrorMessage = '';
 
+// Save the latest module-level error message.
 function setLastError(message) {
   lastErrorMessage = message ? String(message) : '';
 }
 
+// Normalize a value into a lowercase UUID string when valid.
 function normalizeUuid(value) {
   const uuid = String(value || '').trim().toLowerCase();
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidPattern.test(uuid) ? uuid : null;
 }
 
+// Decode JWT payload claims safely from an access/id token.
 function decodeJwtPayload(token) {
   try {
     const parts = String(token || '').split('.');
@@ -28,6 +33,7 @@ function decodeJwtPayload(token) {
   }
 }
 
+// Read the persisted BrightBridge user snapshot from localStorage.
 function getUserFromStorage() {
   const raw = localStorage.getItem('brightbridge.user');
   if (!raw) {
@@ -41,6 +47,7 @@ function getUserFromStorage() {
   }
 }
 
+// Resolve the currently active user from Netlify Identity with storage fallback.
 function getActiveIdentityUser() {
   if (window.netlifyIdentity && typeof window.netlifyIdentity.currentUser === 'function') {
     try {
@@ -56,6 +63,7 @@ function getActiveIdentityUser() {
   return getUserFromStorage();
 }
 
+// Extract a normalized UUID from known user and token fields.
 function uuidFromUser(user) {
   if (!user) {
     return null;
@@ -75,6 +83,7 @@ function uuidFromUser(user) {
   return null;
 }
 
+// Extract a normalized email from known user and token fields.
 function emailFromUser(user) {
   if (!user) {
     return null;
@@ -93,6 +102,7 @@ function emailFromUser(user) {
   return null;
 }
 
+// Convert a YYYY-MM-DD value into a localized display date.
 function toDateLabel(dateValue) {
   if (!dateValue) {
     return '';
@@ -102,6 +112,7 @@ function toDateLabel(dateValue) {
   return date.toLocaleDateString();
 }
 
+// Map a mood keyword into the bit-like values used by the database schema.
 function moodToBit(mood) {
   if (mood === 'happy') {
     return '01';
@@ -114,6 +125,7 @@ function moodToBit(mood) {
   return null;
 }
 
+// Map stored bit/boolean/text DB mood values back into app mood labels.
 function bitToMood(value) {
   if (value === null || value === undefined) {
     return 'neutral';
@@ -130,6 +142,7 @@ function bitToMood(value) {
   return 'neutral';
 }
 
+// Convert a raw database row into the entry shape expected by page scripts.
 function mapRowToEntry(row, userKey) {
   if (!row) {
     return null;
@@ -144,6 +157,7 @@ function mapRowToEntry(row, userKey) {
   };
 }
 
+// Resolve identity details (uuid/email) from direct input, object input, or active session.
 async function resolveDbIdentity(userOrKey) {
   setLastError('');
 
@@ -172,11 +186,12 @@ async function resolveDbIdentity(userOrKey) {
   return null;
 }
 
+// Resolve and ensure a user UUID exists in the database before journal operations.
 async function resolveDbUuid(userKey) {
   setLastError('');
 
   if (!db || typeof db.ensureUserByUuid !== 'function') {
-    const message = 'Database module is not available.';
+    const message = 'Database module is unavailable. Ensure /js/db.js is imported before using JournalStore.';
     setLastError(message);
     console.error(message);
     return null;
@@ -202,11 +217,13 @@ async function resolveDbUuid(userKey) {
   return result.data.uuid;
 }
 
+// Resolve and return only the normalized user key used by page scripts.
 async function resolveUserKey(userOrKey) {
   const identity = await resolveDbIdentity(userOrKey);
   return identity ? identity.uuid : null;
 }
 
+// Load the current day journal entry for the resolved user identity.
 async function getTodayEntry(userKey) {
   const uuid = await resolveDbUuid(userKey);
   if (!uuid) {
@@ -224,6 +241,7 @@ async function getTodayEntry(userKey) {
   return mapRowToEntry(result.data, userKey);
 }
 
+// Save or update the current day entry and mood in a single DB write path.
 async function saveOrUpdateTodayEntry(userKey, content, mood) {
   const trimmed = (content || '').trim();
   if (!trimmed && !mood) {
@@ -260,10 +278,12 @@ async function saveOrUpdateTodayEntry(userKey, content, mood) {
   return mapRowToEntry(upsert.data, userKey);
 }
 
+// Backward-compatible wrapper for saving journal entries.
 async function saveJournalEntry(userKey, content, mood) {
   return saveOrUpdateTodayEntry(userKey, content, mood);
 }
 
+// Save only mood while preserving existing entry content for the day.
 async function saveMood(userKey, mood) {
   if (!mood) {
     return null;
@@ -272,6 +292,7 @@ async function saveMood(userKey, mood) {
   return saveOrUpdateTodayEntry(userKey, '', mood);
 }
 
+// Load recent journal entries and map them into page-friendly entry objects.
 async function getLastJournalEntries(userKey, limit) {
   const uuid = await resolveDbUuid(userKey);
   if (!uuid) {
@@ -288,6 +309,7 @@ async function getLastJournalEntries(userKey, limit) {
   return result.data.map((row) => mapRowToEntry(row, userKey)).filter(Boolean);
 }
 
+// Public JournalStore API used by dashboard and check-in pages.
 const JournalStore = {
   resolveUserKey,
   saveMood,
@@ -295,6 +317,7 @@ const JournalStore = {
   getTodayEntry,
   saveOrUpdateTodayEntry,
   getLastJournalEntries,
+  // Return the most recent module-level error message for UI messaging.
   getLastError: function () {
     return lastErrorMessage;
   }

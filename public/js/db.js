@@ -1,5 +1,6 @@
 import { createClient} from '@supabase/supabase-js'
 
+// Core database module for BrightBridge Supabase access and shared CRUD helpers.
 const SUPABASE_URL = "https://pyqznelkiujkmviedlha.supabase.co"
 const SUPABASE_ANON_KEY = "sb_publishable_TqBEuyZvC51pHJDVXAGk3Q_FigwHhN3"
 
@@ -15,6 +16,7 @@ const db = {
         SUPABASE_ANON_KEY
     ),
 
+    // Return today's date in YYYY-MM-DD format for journal table keys.
     getTodayDate: function () {
         const now = new Date();
         const year = now.getFullYear();
@@ -34,6 +36,7 @@ const db = {
         return { data, error };
     },
 
+    // Fetch the user row by UUID.
     async getUserByUuid(uuid) {
         const normalizedUuid = String(uuid || '').trim().toLowerCase();
         if (!normalizedUuid) {
@@ -49,6 +52,7 @@ const db = {
         return { data: data || null, error };
     },
 
+    // Ensure a user row exists for a UUID and keep its email in sync when needed.
     async ensureUserByUuid(uuid, email) {
         const normalizedUuid = String(uuid || '').trim().toLowerCase();
         const normalizedEmail = String(email || '').trim().toLowerCase();
@@ -114,6 +118,7 @@ const db = {
         return { data: insertedData, error };
     },
 
+    // Fetch a single journal entry for a specific UUID and date.
     async getTodayEntry(uuid, createdDate) {
         const { data, error } = await db.supabase
             .from('journal_entry')
@@ -125,6 +130,7 @@ const db = {
         return { data: data || null, error };
     },
 
+    // Insert or update today's journal entry and mood in one upsert operation.
     async upsertTodayEntry(uuid, createdDate, entryText, overallEmotion) {
         const payload = {
             uuid,
@@ -142,6 +148,7 @@ const db = {
         return { data: data || null, error };
     },
 
+    // Fetch recent journal entries for a user, newest first.
     async getRecentEntries(uuid, limit) {
         const max = Number(limit) > 0 ? Number(limit) : 10;
         const { data, error } = await db.supabase
