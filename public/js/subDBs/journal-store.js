@@ -1,4 +1,4 @@
-// JournalStore module for journal entry persistence, identity resolution, and UI-friendly data mapping.
+// JournalStore module for journal entry persistence, identity resolution, and UI-friendly data mapping. :)
 import db from '/js/db.js';
 
 // Track the latest human-readable error for UI display and debugging.
