@@ -44,7 +44,7 @@ const App = {
     
     // Route users to the correct page whenever auth state changes.
     updateAuthUI() {
-        console.log('swtiching the user to another page')
+        console.log('switching the user to another page')
         var savedUser = localStorage.getItem('brightbridge.user');
         var user;
 
