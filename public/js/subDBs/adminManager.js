@@ -28,7 +28,7 @@ const adminManager = {
 
         }catch(error){
             console.log(error);
-            return error;
+            return { error: error.message };
         } 
     },
 
@@ -55,7 +55,7 @@ const adminManager = {
 
         }catch(error){
             console.log(error);
-            return error;
+            return { error: error.message };
         }
     },
 
