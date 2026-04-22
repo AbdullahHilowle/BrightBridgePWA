@@ -46,7 +46,7 @@ const Auth = {
         netlifyIdentity.on('logout', () => {
             console.log('triggering logout sequence');
             this.user = null;
-            localStorage.removeItem('brightbridge.user'); // Clean up the local storage token
+            //localStorage.removeItem('brightbridge.user'); // Clean up the local storage token
             this.onAuthChange();
         });
         
