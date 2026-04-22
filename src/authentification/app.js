@@ -4,6 +4,7 @@ import Auth from './auth.js'
 const AuthApp = {
     elements: {},
     nav: null,
+    isLoggedIn: false,
     
     // Boot the app by initializing auth, caching key DOM nodes, and wiring listeners.
     init() {
@@ -63,7 +64,7 @@ const AuthApp = {
             // Only redirect if we are NOT already on the login page{
 
             if(!window.location.pathname.includes('/login')){
-                this.nav?.navigate('/login');
+                window.location.assign('/login');
                 console.log('redirecting to login page');
                 return;
             }
@@ -84,7 +85,7 @@ const AuthApp = {
             if (!isReturningUser) {
                 localStorage.setItem('brightbridge_returning_user', 'true');
             }
-            this.nav?.navigate(destination);
+            window.location.assign(destination);
         }
 
 }

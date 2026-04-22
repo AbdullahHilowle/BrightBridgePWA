@@ -1,12 +1,30 @@
-import React from 'react'
+import React, {useEffect} from 'react'
+import {useNavigate} from 'react-router-dom'
 
 import '../css/loginStyles.css'
 import '../css/styles.css'
 
 import Emergency from '../smaller_components/Emergency.js'
+import AuthApp from '../authentification/app.js'
 
 //this is the page with the login logic
 function Login() {
+    const navigate = useNavigate();
+
+    useEffect(() =>{
+      if(!window.netlifyIdentity._initialized){
+        window.netlifyIdentity.init();
+        window.netlifyIdentity._initialized = true;
+      }
+      //const App = window.App;
+        if(AuthApp){
+            AuthApp.nav = {navigate};
+
+            AuthApp.getElements();
+            AuthApp.setupEventListeners();
+            AuthApp.updateAuthUI();
+        }
+    }, [navigate]);
 
     return <>
     <div className="gradient-bg full-height">
