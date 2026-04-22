@@ -1,8 +1,8 @@
-import React,{useState} from 'react'
+import React,{useState, useEffect} from 'react'
 import './css/styles.css';
 import AuthContext from './helper/AuthContext.js'
 /* Not using imports cause builds to fail, Add Link later*/
-import {BrowserRouter as Router, Route, Routes} from 'react-router-dom'
+import {BrowserRouter as Router, Route, Routes, useNavigate} from 'react-router-dom'
 
 import Conflict from './pages/Conflict.js'
 import DailyCheckin from './pages/DailyCheckin.js'
@@ -16,6 +16,7 @@ import MicroSkills from './pages/Microskills.js'
 import Resources from './pages/Resources.js'
 
 import './authentification/app.js'
+import AuthApp from './authentification/app.js'
 
 function App() {
 
@@ -25,7 +26,25 @@ function App() {
     status: false,
   });
 
+  const navigate = useNavigate();
+
+    useEffect(() =>{
+      if(!window.netlifyIdentity._initialized){
+        window.netlifyIdentity.init();
+        window.netlifyIdentity._initialized = true;
+      }
+      //const App = window.App;
+        if(AuthApp){
+            AuthApp.nav = {navigate};
+
+            AuthApp.getElements();
+            AuthApp.setupEventListeners();
+            AuthApp.updateAuthUI();
+        }
+    }, [navigate]);
+
   return (
+
     <div className="App">
       <AuthContext.Provider value = {{authState, setAuthState}}>
       <Router>
