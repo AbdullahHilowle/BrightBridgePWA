@@ -15,6 +15,8 @@ import Login from './pages/Login.js'
 import MicroSkills from './pages/Microskills.js'
 import Resources from './pages/Resources.js'
 
+import './authentification/app.js'
+
 function App() {
 
   const[authState, setAuthState] = useState({

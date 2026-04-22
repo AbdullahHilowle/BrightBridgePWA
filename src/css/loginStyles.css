@@ -32,11 +32,24 @@ body {
       font-size: var(--font-size-md);
       font-weight: 700;
     }
+
+    #netlify-identity-container iframe {
+    display: block !important;
+    visibility: visible !important;
+    height: 100% !important;
+    width: 100% !important;
+}
     
     .login-options {
       padding: 0 var(--spacing-sm);
     }
     
+/* Replace [aria-hidden="false"] with a simple active class */
+.modalContainer.is-active .modalContent {
+    opacity: 1;
+    transform: translateY(0);
+}
+
     h1 {
       font-size: var(--font-size-xl);
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.23);

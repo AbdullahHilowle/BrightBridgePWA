@@ -1,38 +1,26 @@
-
+/* global netlifyIdentity */
 import {getJWTToken, parseUserToken} from './tokenManager.js'
 
 // Auth module - handles Netlify Identity authentication
 const Auth = {
-    get netlifyIdentity() {
-        return window.netlifyIdentity;
-    },
     user: null,
     
     init() { 
-        if (window.netlifyIdentity) {
-            
-        } else {
-            // 2. If not, wait for the script to load
-            console.warn("Netlify Identity not found, waiting...");
-            document.addEventListener('DOMContentLoaded', () => {
-                if (window.netlifyIdentity) {
-                    
-                } else {
-                    console.error("Netlify Identity failed to load after DOM load.");
-                }
-        });
-    }
 
         const savedUser = parseUserToken();
 
         if(savedUser)
             this.user = savedUser;
 
-        // Initialize Netlify Identity
-        this.netlifyIdentity.init();
+        if (typeof window !== 'undefined') {
+            // Initialize with explicit settings
+            window.netlifyIdentity.init({
+                container: 'body', // Explicitly tell it where to inject
+            });
+        }
 
         // Handle redirect after email confirmation
-        this.netlifyIdentity.on('init', user => {
+        netlifyIdentity.on('init', user => {
 
             user = parseUserToken();
 
@@ -45,33 +33,30 @@ const Auth = {
         });
         
         // Set up event listeners
-        this.netlifyIdentity.on('login', user => {
+        netlifyIdentity.on('login', user => {
             this.user = user;
 
             if (user) localStorage.setItem('brightbridge.user', JSON.stringify(user));
             else localStorage.removeItem('brightbridge.user');
 
             this.onAuthChange();
-            this.netlifyIdentity.close();
+            netlifyIdentity.close();
         });
         
-        this.netlifyIdentity.on('logout', () => {
+        netlifyIdentity.on('logout', () => {
             console.log('triggering logout sequence');
             this.user = null;
             localStorage.removeItem('brightbridge.user'); // Clean up the local storage token
             this.onAuthChange();
         });
         
-        this.netlifyIdentity.on('error', err => {
+        netlifyIdentity.on('error', err => {
             console.error('Identity error:', err);
         });
     },
     
     login() {
-        if(this.netlifyIdentity)
-            this.netlifyIdentity.open();
-        else
-            console.log('Netlify is not loading');
+         netlifyIdentity.open();
     },
     
     logout() {
@@ -83,7 +68,7 @@ const Auth = {
 
             // 2. Try to tell Netlify to logout (it will likely fail with a 401/404, but that's okay)
             try {
-                this.netlifyIdentity.logout();
+                netlifyIdentity.logout();
             } catch (e) {
                 console.log("Netlify logout call failed, moving on...");
             }
@@ -91,7 +76,7 @@ const Auth = {
             // 3. DO THE REDIRECT IMMEDIATELY.
             // This is the line that actually "moves" the user.
             console.log("Local cleanup done. Forcing redirect to login...");
-            window.location.assign('/assets/login.html');
+            window.location.assign('/test/login.html');
         }
     },
     

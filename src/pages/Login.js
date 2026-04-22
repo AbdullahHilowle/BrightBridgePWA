@@ -12,11 +12,15 @@ function Login() {
     const navigate = useNavigate();
 
     useEffect(() =>{
+      if(!window.netlifyIdentity._initialized){
+        window.netlifyIdentity.init();
+        window.netlifyIdentity._initialized = true;
+      }
       //const App = window.App;
         if(AuthApp){
             AuthApp.getElements();
             AuthApp.setupEventListeners();
-            
+
             AuthApp.navigate = navigate;
             AuthApp.updateAuthUI();
         }

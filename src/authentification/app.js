@@ -2,48 +2,53 @@ import Auth from './auth.js'
 
 // Main app module - handles UI and orchestrates auth and data modules
 const AuthApp = {
-    navigate : null,
-
     elements: {},
+    nav: null,
     
+    // Boot the app by initializing auth, caching key DOM nodes, and wiring listeners.
     init() {
+        if (typeof window !== 'undefined') {
+        // Initialize with explicit settings
+        window.netlifyIdentity.init({
+            container: 'body', // Explicitly tell it where to inject
+        });
+    }
+
         Auth.init()
     },
 
     getElements(){
         try{
             this.elements = {
-            loginBtn: document.getElementById('login-btn'),
-            logoutBtn: document.getElementById('logout-btn'),
-            userDisplay: document.getElementById('user-display'),
-        };
+                loginBtn: document.getElementById('login-btn'),
+                logoutBtn: document.getElementById('logout-btn'),
+                userDisplay: document.getElementById('user-display'),
+            };
         }catch(e){
             alert('error: '+e)
-        }
-    },
+        }},
     
+    // Attach click handlers and initialize visible user name where elements exist.
     setupEventListeners() {
 
         if(this.elements.loginBtn)
-            this.elements.loginBtn.onclick = () => {
+            this.elements.loginBtn.addEventListener('click', () => {
                 Auth.login();
-            };
+            });
         
         if(this.elements.logoutBtn)
-            this.elements.logoutBtn.onclick = () => {
+            this.elements.logoutBtn.addEventListener('click', () => {
                 Auth.logout();
-            };
+            });
 
         if(this.elements.userDisplay)
             this.elements.userDisplay.textContent = Auth.getUsername() || "Guest";
         
     },
     
+    // Route users to the correct page whenever auth state changes.
     updateAuthUI() {
-
-        const path = window.location.pathname;
-
-        console.log('swtiching the user to another page')
+        console.log('switching the user to another page')
         var savedUser = localStorage.getItem('brightbridge.user');
         var user;
 
@@ -57,8 +62,8 @@ const AuthApp = {
         if (!user) {
             // Only redirect if we are NOT already on the login page{
 
-            if(path !== '/login'){
-                this.navigate?.('/login');
+            if(!window.location.pathname.includes('/login')){
+                this.nav?.navigate('/login');
                 console.log('redirecting to login page');
                 return;
             }
@@ -71,27 +76,18 @@ const AuthApp = {
         // IF THE USER EXISTS and is on login/index, redirect appropriately:
         // First-time users go to home-first-time for onboarding.
         // Returning users go straight to the standard dashboard.
-        if (path === '/login' || path === '/') {
+        if(window.location.pathname.includes('/login')) {
             const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
-            const destination = isReturningUser ? '/home' : '/home-first-time';
-
+            const destination = isReturningUser
+                ? '/home'
+                : '/home-first-time';
             if (!isReturningUser) {
                 localStorage.setItem('brightbridge_returning_user', 'true');
             }
-
-            // Wrap in a function to allow retrying
-            const attemptNav = () => {
-                if (this.navigate) {
-                    this.navigate(destination);
-                } else {
-                    // If the React component hasn't shared 'navigate' yet, wait 50ms and try again
-                    setTimeout(attemptNav, 50);
-                }
-            };
-
-            attemptNav();
+            this.nav?.navigate(destination);
         }
-    }
+
+}
 };
 
 // Expose App globally so Auth can call updateAuthUI
