@@ -32,13 +32,6 @@ body {
       font-size: var(--font-size-md);
       font-weight: 700;
     }
-
-    #netlify-identity-container iframe {
-    display: block !important;
-    visibility: visible !important;
-    height: 100% !important;
-    width: 100% !important;
-}
     
     .login-options {
       padding: 0 var(--spacing-sm);
