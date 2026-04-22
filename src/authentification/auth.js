@@ -13,11 +13,14 @@ const Auth = {
             this.user = savedUser;
 
         if (typeof window !== 'undefined') {
-            // Initialize with explicit settings
-            window.netlifyIdentity.init({
-                container: 'body', // Explicitly tell it where to inject
-            });
+        // Clear any old, potentially corrupt data first
+        if (window.location.hash.includes("access_token")) {
+             console.log("Token detected in URL, initializing widget...");
         }
+
+        window.netlifyIdentity.init({
+            container: 'body'
+        });
 
         // Handle redirect after email confirmation
         netlifyIdentity.on('init', user => {
