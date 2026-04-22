@@ -71,6 +71,8 @@ const Auth = {
                 netlifyIdentity.logout();
             } catch (e) {
                 console.log("Netlify logout call failed, moving on...");
+                this.user = null;
+                localStorage.removeItem('brightbridge.user');
             }
 
             // 3. DO THE REDIRECT IMMEDIATELY.
