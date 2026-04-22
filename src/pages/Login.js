@@ -18,10 +18,10 @@ function Login() {
       }
       //const App = window.App;
         if(AuthApp){
+            AuthApp.nav = {navigate};
+
             AuthApp.getElements();
             AuthApp.setupEventListeners();
-
-            AuthApp.navigate = navigate;
             AuthApp.updateAuthUI();
         }
     }, [navigate]);
