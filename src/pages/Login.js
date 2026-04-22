@@ -9,7 +9,6 @@ import AuthApp from '../authentification/app.js'
 
 //this is the page with the login logic
 function Login() {
-    const navigate = useNavigate();
 
     useEffect(() =>{
       if(!window.netlifyIdentity._initialized){
@@ -18,13 +17,11 @@ function Login() {
       }
       //const App = window.App;
         if(AuthApp){
-            AuthApp.nav = {navigate};
-
             AuthApp.getElements();
             AuthApp.setupEventListeners();
             AuthApp.updateAuthUI();
         }
-    }, [navigate]);
+    }, []);
 
     return <>
     <div className="gradient-bg full-height">

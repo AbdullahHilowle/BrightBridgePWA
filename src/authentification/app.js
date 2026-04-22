@@ -3,7 +3,6 @@ import Auth from './auth.js'
 // Main app module - handles UI and orchestrates auth and data modules
 const AuthApp = {
     elements: {},
-    nav: null,
     isLoggedIn: false,
     
     // Boot the app by initializing auth, caching key DOM nodes, and wiring listeners.
