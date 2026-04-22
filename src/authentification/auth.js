@@ -44,8 +44,8 @@ const Auth = {
         });
         
         netlifyIdentity.on('logout', () => {
-            console.log('triggering logout sequence');
-            this.user = null;
+            //console.log('triggering logout sequence');
+            //this.user = null;
             //localStorage.removeItem('brightbridge.user'); // Clean up the local storage token
             this.onAuthChange();
         });
@@ -63,8 +63,8 @@ const Auth = {
         if (window.confirm('Are you sure you want to log out?')) {
             // 1. Immediately wipe the data locally. 
             // We don't care what the server thinks anymore.
-            this.user = null;
-            localStorage.removeItem('brightbridge.user');
+            //this.user = null;
+           // localStorage.removeItem('brightbridge.user');
 
             // 2. Try to tell Netlify to logout (it will likely fail with a 401/404, but that's okay)
             try {
@@ -76,7 +76,7 @@ const Auth = {
             // 3. DO THE REDIRECT IMMEDIATELY.
             // This is the line that actually "moves" the user.
             console.log("Local cleanup done. Forcing redirect to login...");
-            window.location.assign('/test/login.html');
+            window.location.assign('/login');
         }
     },
     
