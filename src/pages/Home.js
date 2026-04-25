@@ -1,26 +1,34 @@
-import React, { useEffect } from 'react'
+import React, { useEffect , useContext} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import Emergency from '../smaller_components/Emergency.js'
-import LogoutBtn from '../smaller_components/LogoutBtn.js'
 
 import '../css/styles.css'
 import '../css/homeStyles.css'
 
 import '../helper/UpdateMood.js'
 import quickMoodCheck from '../helper/UpdateMood.js'
-import App from '../authentification/app.js'
+
+import {AuthContext} from '../helper/AuthContext.js'
 
 //returns the home page of the pwa
 function Home(){
 
-    const navigate = useNavigate();
+  const logout = () => {
+    window.netlifyIdentity.logout();
+  };
 
-    useEffect(()=>{
-        document.body.style.opacity = '1';
-        App.navigate = navigate;
-        App.updateAuthUI();
-    }, [navigate]);
+    const navigate = useNavigate();
+        const { user, isInitialized } = useContext(AuthContext);
+    
+        useEffect(() =>{
+            if (!isInitialized || !user) {
+                // THE REACT WAY: The moment 'user' is no longer null, 
+                // this useEffect fires and moves the user.
+                navigate('/login');
+            }
+          
+        }, [user, isInitialized, navigate]);
 
     return<>
     <div className="full-height">
@@ -33,7 +41,7 @@ function Home(){
           Welcome back, <span id="user-display">User</span>
         </p>
 
-        <LogoutBtn/>
+        <button id="logout-btn" type="button" onClick={logout}>Log Out</button>
       </div>
     </div>
   </header>
