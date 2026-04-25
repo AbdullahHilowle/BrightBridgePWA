@@ -21,7 +21,9 @@ function Login() {
         if (user) {
             // THE REACT WAY: The moment 'user' is no longer null, 
             // this useEffect fires and moves the user.
-            const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
+            const returnToken = localStorage.getItem('brightbridge_returning_user')
+
+            const isReturningUser = returnToken && (returnToken === 'true');
             const destination = isReturningUser ? '/home' : '/home-first-time';
             
             if (!isReturningUser) {

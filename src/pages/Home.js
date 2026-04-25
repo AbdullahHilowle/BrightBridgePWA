@@ -2,6 +2,7 @@ import React, { useEffect , useContext} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import Emergency from '../smaller_components/Emergency.js'
+import LogoutBtn from '../smaller_components/LogoutBtn.js'
 
 import '../css/styles.css'
 import '../css/homeStyles.css'
@@ -13,10 +14,6 @@ import {AuthContext} from '../helper/AuthContext.js'
 
 //returns the home page of the pwa
 function Home(){
-
-  const logout = () => {
-    window.netlifyIdentity.logout();
-  };
 
     const navigate = useNavigate();
         const { user, isInitialized } = useContext(AuthContext);
@@ -41,7 +38,7 @@ function Home(){
           Welcome back, <span id="user-display">User</span>
         </p>
 
-        <button id="logout-btn" type="button" onClick={logout}>Log Out</button>
+        <LogoutBtn/>
       </div>
     </div>
   </header>
