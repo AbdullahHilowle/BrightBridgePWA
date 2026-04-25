@@ -53,7 +53,7 @@ let currentUserKey = null;
         ? await window.JournalStore.getLastJournalEntries(currentUserKey, 10)
         : [];
 
-      if (!entries.length) {
+      if (!entries.length && historyList) {
         historyList.innerHTML = `
           <div class="entry-empty">
             <p>No journal entries yet.</p>
@@ -63,6 +63,7 @@ let currentUserKey = null;
         return;
       }
 
+      if(historyList)
       historyList.innerHTML = entries.map((entry) => {
         const mood = entry.mood || 'none';
         const moodEmoji = getMoodEmoji(mood);

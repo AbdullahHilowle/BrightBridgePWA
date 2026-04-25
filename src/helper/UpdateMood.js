@@ -6,7 +6,7 @@ window.addEventListener('load', () => {
       const cachedName = (typeof identityDisplay.getCachedDisplayName === 'function')
         ? identityDisplay.getCachedDisplayName()
         : '';
-      if (cachedName) {
+      if (userDisplay && cachedName) {
         userDisplay.textContent = cachedName;
       }
 
