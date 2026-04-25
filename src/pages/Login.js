@@ -8,6 +8,7 @@ import Emergency from '../smaller_components/Emergency.js'
 
 import {AuthContext} from '../helper/AuthContext.js'
 
+
 //this is the page with the login logic
 function Login() {
 
