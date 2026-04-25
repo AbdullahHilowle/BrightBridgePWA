@@ -9,9 +9,10 @@ export const AuthProvider = ({ children }) => {
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
+
         // 1. Initialize once
         if (!window.netlifyIdentity._initialized) {
-            window.netlifyIdentity.init();
+            netlifyIdentity.init();
             window.netlifyIdentity._initialized = true;
         }
 

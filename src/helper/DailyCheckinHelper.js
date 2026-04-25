@@ -1,4 +1,3 @@
- import 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
  import '../database/databaseManager.js'
  import '../database/journal-store.js'
  import '../database/identity-display.js'
@@ -16,14 +15,14 @@ let currentUserKey = null;
         const syncFromUser = async (user) => {
           if (!user) {
             if (didResolveInit) {
-              window.location.assign('/assets/login.html');
+              window.location.assign('/login');
             }
             return;
           }
 
-          const name = (typeof identityDisplay.syncStoredDisplayName === 'function')
-            ? identityDisplay.syncStoredDisplayName(user)
-            : '';
+          if(typeof identityDisplay.syncStoredDisplayName === 'function')
+            identityDisplay.syncStoredDisplayName(user)
+            // : '';
 
           if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
             currentUserKey = await window.JournalStore.resolveUserKey(user);
@@ -46,10 +45,6 @@ let currentUserKey = null;
       document.body.style.opacity = '1';
       await renderHistory();
     });
-
-    function goBack() {
-      window.location.assign('/assets/home.html');
-    }
 
     async function renderHistory() {
       const historyList = document.getElementById('historyList');
