@@ -1,27 +1,35 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useContext} from 'react'
 import {useNavigate} from 'react-router-dom'
 
 import '../css/loginStyles.css'
 import '../css/styles.css'
 
 import Emergency from '../smaller_components/Emergency.js'
-import AuthApp from '../authentification/app.js'
+
+import {AuthContext} from '../helper/AuthContext.js'
 
 //this is the page with the login logic
 function Login() {
 
+    const navigate = useNavigate();
+    const { user, isInitialized } = useContext(AuthContext);
+
     useEffect(() =>{
-      if(!window.netlifyIdentity._initialized){
-        window.netlifyIdentity.init();
-        window.netlifyIdentity._initialized = true;
-      }
-      //const App = window.App;
-        if(AuthApp){
-            AuthApp.getElements();
-            AuthApp.setupEventListeners();
-            AuthApp.updateAuthUI();
+      if (!isInitialized) return; // Wait until Netlify is ready
+
+        if (user) {
+            // THE REACT WAY: The moment 'user' is no longer null, 
+            // this useEffect fires and moves the user.
+            const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
+            const destination = isReturningUser ? '/home' : '/home-first-time';
+            
+            if (!isReturningUser) {
+                localStorage.setItem('brightbridge_returning_user', 'true');
+            }
+            navigate(destination);
         }
-    }, []);
+      
+    }, [user, isInitialized, navigate]);
 
     return <>
     <div className="gradient-bg full-height">
@@ -37,7 +45,8 @@ function Login() {
 
         <main>
           <div id="auth-view" className="view">
-            <button id="login-btn" className="btn btn-primary">Log In / Sign Up</button>
+            <button id="login-btn" className="btn btn-primary" 
+              onClick={() => {window.netlifyIdentity.open()}}>Log In / Sign Up</button>
           </div>
         </main>
       </div>

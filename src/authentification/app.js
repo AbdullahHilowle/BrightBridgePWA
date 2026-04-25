@@ -11,6 +11,7 @@ const AuthApp = {
         // Initialize with explicit settings
         window.netlifyIdentity.init({
             container: 'body', // Explicitly tell it where to inject
+            APIUrl: 'https://loginintegration-ivan--bright-bridge-pwa.netlify.app/.netlify/identity'
         });
     }
 
