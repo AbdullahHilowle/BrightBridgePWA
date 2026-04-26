@@ -2,7 +2,6 @@ import React, { useEffect , useContext} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import Emergency from '../smaller_components/Emergency.js'
-import LogoutBtn from '../smaller_components/LogoutBtn.js'
 
 import '../css/styles.css'
 import '../css/homeStyles.css'
@@ -44,7 +43,7 @@ function Home(){
           Welcome back, <span id="user-display">User</span>
         </p>
 
-        <LogoutBtn/>
+        <button id="logout-btn" type="button" onClick={() => {window.netlifyIdentity.logout()}}>Log Out</button>
       </div>
     </div>
   </header>
