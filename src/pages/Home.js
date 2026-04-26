@@ -30,6 +30,9 @@ function Home(){
       
     }, [user, isInitialized, navigate]);
 
+    if (!isInitialized) return <div>Checking session...</div>;
+  if (!user) return null; // Let the useEffect handle the redirect
+
     return<>
     <div className="full-height">
   
