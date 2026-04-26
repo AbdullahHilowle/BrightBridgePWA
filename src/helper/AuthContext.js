@@ -24,13 +24,13 @@ export const AuthProvider = ({ children }) => {
         // 3. LISTENERS: These update the state automatically
         window.netlifyIdentity.on('login', (loggedUser) => {
             setUser(loggedUser); // This triggers UI updates everywhere!
-            localStorage.setItem('brightbridge.user', JSON.stringify(loggedUser));
             window.netlifyIdentity.close();
         });
 
         window.netlifyIdentity.on('logout', () => {
             setUser(null);
             localStorage.removeItem('brightbridge.user');
+            localStorage.removeItem('netlify-identity-widget');
             window.location.reload();
         });
 
