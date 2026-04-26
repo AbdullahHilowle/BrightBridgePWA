@@ -16,16 +16,19 @@ import {AuthContext} from '../helper/AuthContext.js'
 function Home(){
 
     const navigate = useNavigate();
-        const { user, isInitialized } = useContext(AuthContext);
+    const { user, isInitialized } = useContext(AuthContext);
     
-        useEffect(() =>{
-            if (!isInitialized || !user) {
-                // THE REACT WAY: The moment 'user' is no longer null, 
-                // this useEffect fires and moves the user.
-                navigate('/login');
-            }
-          
-        }, [user, isInitialized, navigate]);
+    useEffect(() =>{
+        if(!isInitialized)
+            return;
+
+        if (!user) {
+            // THE REACT WAY: The moment 'user' is no longer null, 
+            // this useEffect fires and moves the user.
+            navigate('/login');
+        }
+      
+    }, [user, isInitialized, navigate]);
 
     return<>
     <div className="full-height">
