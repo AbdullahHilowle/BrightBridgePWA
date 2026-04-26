@@ -22,6 +22,8 @@ function Home(){
       setTimeout(() => {window.netlifyIdentity.logout()}, 100)};
 
     useEffect(() =>{
+        window.location.reload();
+
         if(!isInitialized)
             return;
 
