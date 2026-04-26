@@ -15,6 +15,7 @@ function Greeting(){
     const navigate = useNavigate();
 
     function enterApp() {
+      console.log("Entering App");
       setTimeout(() => {
         navigate('/login');
       }, 300);

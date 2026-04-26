@@ -18,6 +18,8 @@ function Login() {
     useEffect(() =>{
       if (!isInitialized) return; // Wait until Netlify is ready
 
+      if (window.location.pathname !== '/login') return;
+
         if (user) {
             // THE REACT WAY: The moment 'user' is no longer null, 
             // this useEffect fires and moves the user.
