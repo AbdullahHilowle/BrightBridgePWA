@@ -1,4 +1,4 @@
-import React, { useEffect , useContext} from 'react'
+import React, { useEffect , useContext, useState} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import Emergency from '../smaller_components/Emergency.js'
@@ -16,17 +16,16 @@ function Home(){
     const navigate = useNavigate();
     const { user, isInitialized } = useContext(AuthContext);
 
-    var fullName;
-
-    // To get the name safely:
-    setTimeout(() => {
-      fullName = user?.user_metadata?.full_name || "Guest";
-    }, 200);
+    const [fullName, setFullName] = useState("");
    
 
     useEffect(() =>{
         if(!isInitialized)
             return;
+
+        setTimeout(() => {
+          setFullName(user?.user_metadata?.full_name || "Guest");
+        }, 200);
 
         if (isInitialized && !user) {
             // THE REACT WAY: The moment 'user' is no longer null, 
