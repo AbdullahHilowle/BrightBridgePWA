@@ -31,7 +31,7 @@ function Login() {
             if (!isReturningUser) {
                 localStorage.setItem('brightbridge_returning_user', 'true');
             }
-            navigate(destination);
+            window.location.assign(destination);
         }
       
     }, [user, isInitialized, navigate]);
