@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
         window.netlifyIdentity.on('login', (loggedUser) => {
             setUser(loggedUser); // This triggers UI updates everywhere!
             window.netlifyIdentity.close();
+            localStorage.setItem('brightbridge.user', JSON.stringify(loggedUser));
         });
 
         window.netlifyIdentity.on('logout', () => {
