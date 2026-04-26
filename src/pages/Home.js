@@ -17,7 +17,9 @@ function Home(){
     const { user, isInitialized } = useContext(AuthContext);
 
     const [fullName, setFullName] = useState("");
-   
+
+    const logout = () => {
+      setTimeout(() => {window.netlifyIdentity.logout()}, 100)};
 
     useEffect(() =>{
         if(!isInitialized)
@@ -25,7 +27,7 @@ function Home(){
 
         setTimeout(() => {
           setFullName(user?.user_metadata?.full_name || "Guest");
-        }, 200);
+        }, 100);
 
         if (isInitialized && !user) {
             // THE REACT WAY: The moment 'user' is no longer null, 
@@ -49,7 +51,7 @@ function Home(){
           Welcome back, {fullName}
         </p>
 
-        <button id="logout-btn" type="button" onClick={() => {window.netlifyIdentity.logout()}}>Log Out</button>
+        <button id="logout-btn" type="button" onClick={logout}>Log Out</button>
       </div>
     </div>
   </header>
