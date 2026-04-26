@@ -23,7 +23,7 @@ function Login() {
             // this useEffect fires and moves the user.
             const returnToken = localStorage.getItem('brightbridge_returning_user')
 
-            const isReturningUser = (returnToken === 'true');
+            const isReturningUser = returnToken && (returnToken === 'true');
             const destination = isReturningUser ? '/home' : '/home-first-time';
             
             if (!isReturningUser) {
