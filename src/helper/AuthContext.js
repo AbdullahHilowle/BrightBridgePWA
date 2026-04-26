@@ -25,6 +25,11 @@ export const AuthProvider = ({ children }) => {
         window.netlifyIdentity.on('login', (loggedUser) => {
             setUser(loggedUser); // This triggers UI updates everywhere!
             window.netlifyIdentity.close();
+
+            if (!this.AuthContextuser?.user_metadata) {
+                console.warn("User metadata missing, blocking render to prevent crash");
+                return; 
+            }
         });
 
         window.netlifyIdentity.on('logout', () => {
