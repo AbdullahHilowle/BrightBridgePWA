@@ -6,7 +6,6 @@ import Emergency from '../smaller_components/Emergency.js'
 import '../css/styles.css'
 import '../css/homeStyles.css'
 
-import '../helper/UpdateMood.js'
 import quickMoodCheck from '../helper/UpdateMood.js'
 
 import {AuthContext} from '../helper/AuthContext.js'
