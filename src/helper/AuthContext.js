@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
         window.netlifyIdentity.on('logout', () => {
             setUser(null);
             localStorage.removeItem('brightbridge.user');
-            window.netlifyIdentity.reload();
+            window.location.reload();
         });
 
     }, []);
