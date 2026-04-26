@@ -16,7 +16,10 @@ function Home(){
 
     const navigate = useNavigate();
     const { user, isInitialized } = useContext(AuthContext);
-    
+
+    // To get the name safely:
+    const fullName = user?.user_metadata?.full_name || "Guest";
+
     useEffect(() =>{
         if(!isInitialized)
             return;
@@ -40,7 +43,7 @@ function Home(){
       <div className="header-content">
         <h1 className="text-white">BrightBridge</h1>
         <p className="text-white" style={{opacity: 0.9, fontSize: 'var(--font-size-xs)'}}>
-          Welcome back, <span id="user-display">User</span>
+          Welcome back, {fullName}
         </p>
 
         <button id="logout-btn" type="button" onClick={() => {window.netlifyIdentity.logout()}}>Log Out</button>
