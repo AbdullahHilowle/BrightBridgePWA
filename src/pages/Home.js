@@ -16,8 +16,13 @@ function Home(){
     const navigate = useNavigate();
     const { user, isInitialized } = useContext(AuthContext);
 
+    var fullName;
+
     // To get the name safely:
-    const fullName = user?.user_metadata?.full_name || "Guest";
+    setTimeout(() => {
+      fullName = user?.user_metadata?.full_name || "Guest";
+    }, 200);
+   
 
     useEffect(() =>{
         if(!isInitialized)
