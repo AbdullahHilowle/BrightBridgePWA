@@ -15,7 +15,7 @@ let currentUserKey = null;
         const syncFromUser = async (user) => {
           if (!user) {
             if (didResolveInit) {
-              window.location.assign('/login');
+              //window.location.assign('/login');
             }
             return;
           }
