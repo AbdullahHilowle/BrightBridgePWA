@@ -22,10 +22,10 @@ function Home(){
         if(!isInitialized)
             return;
 
-        if (!user) {
+        if (isInitialized && !user) {
             // THE REACT WAY: The moment 'user' is no longer null, 
             // this useEffect fires and moves the user.
-            navigate('/login');
+            navigate('/login', { replace: true });
         }
       
     }, [user, isInitialized, navigate]);
