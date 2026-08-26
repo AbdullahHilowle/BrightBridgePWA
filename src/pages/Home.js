@@ -6,9 +6,6 @@ import Emergency from '../smaller_components/Emergency.js'
 import '../css/styles.css'
 import '../css/homeStyles.css'
 
-import '../helper/UpdateMood.js'
-import quickMoodCheck from '../helper/UpdateMood.js'
-
 import {AuthContext} from '../helper/AuthContext.js'
 
 //returns the home page of the pwa
@@ -69,14 +66,8 @@ function Home(){
       </p>
       
       <div className="mood-selector" style={{justifyContent: 'flex-start'}}>
-        <button className="mood-btn happy" onClick={(e)=>{quickMoodCheck(e, 'happy')}} aria-label="Happy">
-          😊
-        </button>
-        <button className="mood-btn neutral" onClick={(e)=>{quickMoodCheck(e, 'neutral')}} aria-label="Neutral">
-          😐
-        </button>
-        <button className="mood-btn sad" onClick={(e)=>{quickMoodCheck(e, 'sad')}} aria-label="Sad">
-          ☹️
+        <button className="mood-btn happy" onClick={navigate('/dailycheckin')} aria-label="Happy">
+          Log/Update Daily Mood Journal
         </button>
       </div>
     </section>

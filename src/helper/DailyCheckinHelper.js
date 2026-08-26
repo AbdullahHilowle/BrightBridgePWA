@@ -1,106 +1,89 @@
- import '../database/databaseManager.js'
- import '../database/journal-store.js'
- import '../database/identity-display.js'
+import '../database/databaseManager.js'
+import '../database/journal-store.js'
+import '../database/identity-display.js'
 
 let currentUserKey = null;
 
-    window.addEventListener('load', async () => {
-      const identityDisplay = window.IdentityDisplayName || {};
-      if (window.netlifyIdentity) {
-        const apiUrl = `${window.location.origin}/.netlify/identity`;
-        window.netlifyIdentity.init({ APIUrl: apiUrl });
+window.addEventListener('load', async () => {
+  if (window.netlifyIdentity) {
+    const apiUrl = `${window.location.origin}/.netlify/identity`;
+    window.netlifyIdentity.init({ APIUrl: apiUrl });
 
-        let didResolveInit = false;
+    let didResolveInit = false;
 
-        const syncFromUser = async (user) => {
-          if (!user) {
-            if (didResolveInit) {
-              //window.location.assign('/login');
-            }
-            return;
-          }
+    const syncFromUser = async (user) => {
 
-          if(typeof identityDisplay.syncStoredDisplayName === 'function')
-            identityDisplay.syncStoredDisplayName(user)
-            // : '';
-
-          if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
-            currentUserKey = await window.JournalStore.resolveUserKey(user);
-            await renderHistory();
-          }
-        };
-
-        const currentUser = window.netlifyIdentity.currentUser();
-        if (currentUser) {
-          await syncFromUser(currentUser);
-        }
-
-        window.netlifyIdentity.on('init', (user) => {
-          didResolveInit = true;
-          syncFromUser(user);
-        });
-        window.netlifyIdentity.on('login', syncFromUser);
+      if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
+        currentUserKey = await window.JournalStore.resolveUserKey(user);
+        await renderHistory();
       }
+    };
 
-      document.body.style.opacity = '1';
-      await renderHistory();
-    });
+    const currentUser = window.netlifyIdentity.currentUser();
+    if (currentUser) {
+      await syncFromUser(currentUser);
+    }
+  }
 
-    async function renderHistory() {
-      const historyList = document.getElementById('historyList');
+  document.body.style.opacity = '1';
+  await renderHistory();
+});
 
-      const entries = (window.JournalStore && typeof window.JournalStore.getLastJournalEntries === 'function')
-        ? await window.JournalStore.getLastJournalEntries(currentUserKey, 10)
-        : [];
+async function renderHistory() {
+  const historyList = document.getElementById('historyList');
 
-      if (!entries.length && historyList) {
-        historyList.innerHTML = `
-          <div class="entry-empty">
-            <p>No journal entries yet.</p>
-            <p>Your last 10 entries will appear here automatically.</p>
+  const entries = (window.JournalStore && typeof window.JournalStore.getLastJournalEntries === 'function')
+    ? await window.JournalStore.getLastJournalEntries(currentUserKey, 10)
+    : [];
+
+  if (!entries.length && historyList) {
+    historyList.innerHTML = `
+      <div class="entry-empty">
+        <p>No journal entries yet.</p>
+        <p>Your last 10 entries will appear here automatically.</p>
+      </div>
+    `;
+    return;
+  }
+
+  if(historyList)
+  historyList.innerHTML = entries.map((entry) => {
+    const mood = entry.mood || 'none';
+    const moodEmoji = getMoodEmoji(mood);
+    const moodLabel = mood === 'none' ? 'Not selected' : capitalize(mood);
+
+    return `
+      <article class="journal-entry-card mood-${mood}">
+        <div class="entry-top-row">
+          <p class="entry-date">${entry.date}</p>
+          <div class="entry-mood-badge" aria-label="Mood ${moodLabel}">
+            <span class="entry-mood-emoji">${moodEmoji}</span>
+            <span class="entry-mood-label">${moodLabel}</span>
           </div>
-        `;
-        return;
-      }
+        </div>
+        <p class="entry-content">${escapeHtml(entry.content)}</p>
+      </article>
+    `;
+  }).join('');
+}
 
-      if(historyList)
-      historyList.innerHTML = entries.map((entry) => {
-        const mood = entry.mood || 'none';
-        const moodEmoji = getMoodEmoji(mood);
-        const moodLabel = mood === 'none' ? 'Not selected' : capitalize(mood);
+function getMoodEmoji(mood) {
+  if (mood === 'happy') return '😊';
+  if (mood === 'neutral') return '😐';
+  if (mood === 'sad') return '☹️';
+  return '📝';
+}
 
-        return `
-          <article class="journal-entry-card mood-${mood}">
-            <div class="entry-top-row">
-              <p class="entry-date">${entry.date}</p>
-              <div class="entry-mood-badge" aria-label="Mood ${moodLabel}">
-                <span class="entry-mood-emoji">${moodEmoji}</span>
-                <span class="entry-mood-label">${moodLabel}</span>
-              </div>
-            </div>
-            <p class="entry-content">${escapeHtml(entry.content)}</p>
-          </article>
-        `;
-      }).join('');
-    }
+function capitalize(value) {
+  if (!value) {
+    return '';
+  }
 
-    function getMoodEmoji(mood) {
-      if (mood === 'happy') return '😊';
-      if (mood === 'neutral') return '😐';
-      if (mood === 'sad') return '☹️';
-      return '📝';
-    }
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
-    function capitalize(value) {
-      if (!value) {
-        return '';
-      }
-
-      return value.charAt(0).toUpperCase() + value.slice(1);
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text || '';
-      return div.innerHTML;
-    }
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text || '';
+  return div.innerHTML;
+}

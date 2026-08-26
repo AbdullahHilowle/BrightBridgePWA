@@ -6,7 +6,7 @@ import Emergency from '../smaller_components/Emergency'
 import '../css/dailycheckin.css'
 import '../css/styles.css'
 
-import '../helper/DailyCheckinHelper.js'
+
 
 function DailyCheckin(){
 
