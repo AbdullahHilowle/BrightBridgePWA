@@ -5,6 +5,8 @@ import uvicorn
 
 from config.settings import settings
 
+from services.auth import Auth_Service
+
 #middlewares
 from middlewares.setup import setup_middlewares
 
@@ -12,7 +14,7 @@ from middlewares.setup import setup_middlewares
 from error_handling.setup import setup_error_handlers
 
 #routers
-
+from routers.auth import router as auth_router
 
 #dependencies initiallized at beginning
 from infrastructure.jwt import Jwt_Manager
@@ -25,6 +27,7 @@ async def lifespan(app: FastAPI):
                                                format='%(asctime)s - %(levelname)s - %(message)s')
 
     app.state.jwt_manager = Jwt_Manager()
+    app.state.auth_router = Auth_Service()
 
     yield
 
@@ -45,7 +48,7 @@ setup_middlewares(app)
 setup_error_handlers(app)
 
 # app.include_router(auth_router, prefix="/auth")
-
+app.include_router(auth_router)
 
 """
 Function that initially welcomes the user as the are connected to the endpoint.
