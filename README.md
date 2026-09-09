@@ -1,2 +1,2 @@
-# BrightBridgePWA test 1
+# BrightBridgePWA
 - https://brightbridgepwa.netlify.app/
