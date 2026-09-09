@@ -18,6 +18,7 @@ from routers.auth import router as auth_router
 
 #dependencies initiallized at beginning
 from infrastructure.jwt import Jwt_Manager
+from infrastructure.cookie_processor import verify_auth_cookie
 
 #creating dependencies 
 @asynccontextmanager
